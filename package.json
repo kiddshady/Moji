@@ -1,0 +1,88 @@
+{
+  "name": "moji",
+  "productName": "Moji",
+  "version": "0.2.0",
+  "description": "Panel de emojis, kaomojis y símbolos para Windows.",
+  "main": "main.cjs",
+  "author": "Kidd Shady · Umbrovex Systems <umbrovex@proton.me>",
+  "license": "MIT",
+  "copyright": "Copyright © 2026 Kidd Shady · Umbrovex Systems",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "test": "node test/tokens.test.mjs && node test/store.test.mjs && node test/format.test.mjs && node test/moji.test.mjs",
+    "smoke": "electron test/moji-smoke.cjs",
+    "build": "electron-builder --win portable --x64",
+    "build:installer": "electron-builder --win nsis --x64 --config.directories.output=installer-dist",
+    "catalog": "node tools/catalog.cjs",
+    "icons": "node tools/icons.mjs",
+    "test:package": "electron test/package-smoke.cjs",
+    "release": "electron-builder --win nsis --x64 --config.directories.output=installer-dist --publish always"
+  },
+  "devDependencies": {
+    "electron": "40.10.6",
+    "electron-builder": "^26.15.3",
+    "emojibase-data": "17.0.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "koffi": "3.2.1"
+  },
+  "build": {
+    "appId": "com.umbrovex.moji",
+    "productName": "Moji",
+    "copyright": "Copyright © 2026 Kidd Shady · Umbrovex Systems",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "src/native.cjs",
+      "src/catalog.cjs",
+      "src/store.cjs",
+      "src/updater.cjs",
+      "renderer/index.html",
+      "renderer/css/**",
+      "renderer/fonts/**",
+      "renderer/js/app.js",
+      "renderer/js/icons.js",
+      "renderer/js/overlays.js",
+      "renderer/js/motion.js",
+      "renderer/js/search.mjs",
+      "renderer/data/**",
+      "assets/**",
+      "LICENSE",
+      "NOTICE"
+    ],
+    "asarUnpack": [
+      "node_modules/koffi/**"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "assets/icon.ico",
+      "signExecutable": false
+    },
+    "portable": {
+      "artifactName": "${productName}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Moji",
+      "uninstallDisplayName": "Moji",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "runAfterFinish": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "kiddshady",
+        "repo": "Moji"
+      }
+    ]
+  }
+}

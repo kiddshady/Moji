@@ -1,0 +1,67 @@
+# Publica un Release de GitHub con el instalador y el latest.yml que lee el
+# actualizador (src/updater.cjs). Se dispara al pushear un tag vX.Y.Z; el tag
+# tiene que coincidir con el `version` de package.json, porque el instalador y
+# el latest.yml salen de ahí, no del tag.
+#
+#   npm version minor          # bumpea package.json y crea el tag
+#   git push --follow-tags     # y esto dispara el build
+#
+# El GITHUB_TOKEN que usa electron-builder para subir es el del propio repo:
+# no hay que crear ningún secreto.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: El tag tiene que ser la versión del package.json
+        shell: bash
+        run: |
+          v="v$(node -p "require('./package.json').version")"
+          if [ "$v" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::el tag es ${GITHUB_REF_NAME} pero package.json dice $v"
+            exit 1
+          fi
+
+      - run: npm test
+
+      # El borrador se crea acá y no en electron-builder: sube instalador,
+      # blockmap y latest.yml en paralelo, y si ninguna subida encuentra el
+      # release, cada una crea el suyo. Las notas salen del mensaje del tag.
+      - name: Crear el borrador del Release
+        shell: bash
+        run: |
+          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 \
+            || gh release create "${GITHUB_REF_NAME}" --draft --verify-tag \
+                 --title "Moji ${GITHUB_REF_NAME#v}" \
+                 --notes "$(git tag -l --format='%(contents:body)' "${GITHUB_REF_NAME}")"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Instalador + subida al Release
+        run: npm run release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Un borrador no cuenta como actualización: se publica recién con todo arriba.
+      - name: Publicar el Release
+        shell: bash
+        run: gh release edit "${GITHUB_REF_NAME}" --draft=false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
