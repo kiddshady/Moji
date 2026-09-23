@@ -18,7 +18,16 @@ const save = () => stateDoc.write(state);
 const loginOptions = () => ({path:process.env.PORTABLE_EXECUTABLE_FILE||app.getPath('exe'),args:['--background']});
 const snapshot = () => ({ ...state, usage:catalog.rank(state.usage), shortcutOK:registered, startup:app.getLoginItemSettings(loginOptions()).openAtLogin, version:app.getVersion(), update:updater.current() });
 function hwnd() { return win?.getNativeWindowHandle().readBigUInt64LE(0) || 0n; }
-function hide() { if (win && !win.isDestroyed()) { win.webContents.send('panel:closing'); win.hide(); } }
+// restore: al cerrar a propósito (Esc, la X, el atajo) el foco vuelve a la ventana
+// desde la que se abrió Moji, con su cursor. Se pide mientras Moji todavía está en
+// primer plano, que es cuando Windows lo permite. Al hacer clic afuera no: ahí el
+// foco ya está donde el usuario lo quiso.
+function hide(restore = false) {
+  if (!win || win.isDestroyed() || !win.isVisible()) return;
+  win.webContents.send('panel:closing');
+  if (restore && target && BigInt(target) !== hwnd()) native.focus(target);
+  win.hide();
+}
 async function show(capture = true) {
   if (!ready || opening) return;
   if (capture) { const h=native.foreground(); target=BigInt(h)!==hwnd()?h:target; }
@@ -34,7 +43,7 @@ async function show(capture = true) {
   win.webContents.send('panel:opened',snapshot());
   opening=false;
 }
-function toggle() { win?.isVisible() && win.isFocused() ? hide() : show(); }
+function toggle() { win?.isVisible() && win.isFocused() ? hide(true) : show(); }
 function registerShortcut(value) {
   if (typeof value==='string') value=value.replace(/\+Period$/i,'+.');
   if (typeof value!=='string' || value.length>80 || !/^(Control|Alt|Shift|Super)(\+(Control|Alt|Shift|Super))*\+([A-Z0-9.]|Space|F\d{1,2})$/.test(value)) throw new Error('Usá un modificador y una letra, número, punto, espacio o tecla de función.');
@@ -88,7 +97,7 @@ function registerIPC() {
   ipcMain.handle('moji:update-check',guard(()=>updater.check()));
   ipcMain.on('moji:update-install',e=>{if(e.sender===win?.webContents)updater.install()});
   ipcMain.handle('moji:clear',guard(async()=>{state.usage={};await save();return snapshot()}));
-  ipcMain.on('moji:hide',e=>{if(e.sender===win?.webContents)hide()});
+  ipcMain.on('moji:hide',e=>{if(e.sender===win?.webContents)hide(true)});
   ipcMain.on('moji:quit',e=>{if(e.sender===win?.webContents)app.quit()});
 }
 async function start() {
@@ -106,7 +115,7 @@ async function start() {
   win.webContents.on('will-navigate',e=>e.preventDefault());
   win.webContents.session.setPermissionRequestHandler((_wc,_p,cb)=>cb(false));
   win.on('blur',()=>{if(!opening&&!busy)hide()});
-  win.on('close',e=>{if(!quitting){e.preventDefault();hide()}});
+  win.on('close',e=>{if(!quitting){e.preventDefault();hide(true)}});
   win.webContents.on('console-message',e=>{if(e.level>=2)console.error('[renderer]',e.message)});
   registerIPC();
   try{registerShortcut(state.shortcut)}catch(err){registered=false;console.error(err.message)}
