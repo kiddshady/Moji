@@ -26,7 +26,8 @@ function preview(item){if(!item){$('preview-char').textContent='';$('preview-lab
 function renderTabs(){for(const [id,label,icon] of types){const b=document.createElement('button');b.className='tab';b.id=`tab-${id}`;b.setAttribute('role','tab');b.setAttribute('aria-controls','results');b.setAttribute('aria-selected',String(id===state.tab));b.dataset.tab=id;b.innerHTML=Icons.svg(icon)+`<span>${label}</span>`;b.onclick=()=>changeTab(id);$('tabs').append(b)}}
 async function changeTab(id){state.tab=id;category='all';$('search').value='';render();await settings({tab:id});$('search').focus()}
 function renderCategories(){const box=$('categories');box.replaceChildren();const cats=state.tab==='frequent'?[{id:'all',label:'Todos'},{id:'emoji',label:'Emojis'},{id:'kaomoji',label:'Kaomojis'},{id:'symbol',label:'Símbolos'}]:[{id:'all',label:'Todos'},...catalog.categories[state.tab]];for(const c of cats){const b=document.createElement('button');b.className='category';b.textContent=c.label;b.setAttribute('aria-pressed',String(c.id===category));b.onclick=()=>{category=c.id;render()};box.append(b)}}
-function render(){
+// still: al abrir el panel la grilla nace quieta; aparece la ventana entera, no la grilla.
+function render(still=false){
  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===state.tab)));
  renderCategories();const query=$('search').value.trim();$('clear-search').hidden=!query;$('search-key').hidden=!!query;
  let items;
@@ -38,7 +39,7 @@ function render(){
  visible=searchItems(items,query);
  $('section-name').textContent=query?'Resultados':state.tab==='frequent'?(state.usage.length?'Tus más usados':'Para empezar'):category==='all'?types.find(t=>t[0]===state.tab)[1]:catalog.categories[state.tab].find(c=>c.id===category)?.label||category;
  $('result-count').textContent=String(visible.length);$('results').setAttribute('aria-labelledby',`tab-${state.tab}`);
- const grid=document.createElement('div');grid.className=`grid ${state.tab==='frequent'?'mixed':state.tab}`;
+ const grid=document.createElement('div');grid.className=`grid ${state.tab==='frequent'?'mixed':state.tab}${still?' still':''}`;
  for(const [index,item] of visible.entries()){
    const b=document.createElement('button');b.className='character';b.dataset.id=item.id;b.dataset.kind=item.kind;b.dataset.index=index;b.setAttribute('aria-label',item.label);b.dataset.tip=item.label;b.dataset.tipSide='top';
    const span=document.createElement('span');span.className='glyph';span.textContent=variant(item,toneFor(item));b.append(span);
@@ -80,6 +81,6 @@ document.addEventListener('keydown',e=>{
  }
  if(active&&e.ctrlKey&&e.key.toLowerCase()==='c'){e.preventDefault();choose(visible[Number(active.dataset.index)],true)}
 });
-api.onOpen(s=>{if(!catalog)return;state=s;inserted=false;category='all';$('search').value='';preferences(false);render();$('search').focus();if(!state.shortcutOK)notice('El atajo está ocupado. Podés cambiarlo en Ajustes.',true)});
+api.onOpen(s=>{if(!catalog)return;state=s;inserted=false;category='all';$('search').value='';preferences(false);render(true);$('search').focus();if(!state.shortcutOK)notice('El atajo está ocupado. Podés cambiarlo en Ajustes.',true)});
 api.onClose(()=>{Tooltip.hide(true);Menu.close();$('notice').hidden=true});
 try{[state,catalog]=await Promise.all([api.state(),fetch('./data/catalog.json').then(r=>r.json())]);byId=new Map(catalog.items.map(i=>[i.id,i]));renderTabs();render();const splash=$('boot-splash');splash.dataset.state='closing';setTimeout(()=>splash.remove(),190);$('search').focus();document.documentElement.dataset.ready='true'}catch(e){$('boot-splash').textContent='No se pudo abrir Moji';notice(e.message,true)}

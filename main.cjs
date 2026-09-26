@@ -36,11 +36,13 @@ async function show(capture = true) {
   const x=Math.round(Math.min(Math.max(cursor.x-80,a.x+8),a.x+a.width-424));
   const y=Math.round(Math.min(Math.max(cursor.y+16,a.y+8),a.y+a.height-544));
   // Onyx's DWM warm-up happens off-screen on hidden -> visible transitions.
+  // El panel se rearma acá, todavía fuera de pantalla: si se avisara ya en su lugar,
+  // se vería un cuadro con lo de la vez anterior y después la grilla nueva (parpadeo).
   win.setPosition(-20000,-20000); win.showInactive();
+  win.webContents.send('panel:opened',snapshot());
   await new Promise(r=>setTimeout(r,200));
   if (quitting) return;
   win.setPosition(x,y); win.show(); win.focus();
-  win.webContents.send('panel:opened',snapshot());
   opening=false;
 }
 function toggle() { win?.isVisible() && win.isFocused() ? hide(true) : show(); }
