@@ -59,7 +59,7 @@ npm run test:package
 
 `npm test` comprueba tokens, almacenamiento, búsqueda (incluidos los ejemplos que sugieren los buscadores), catálogo, variantes y codificación UTF-16. `npm run smoke` prueba el renderer real, menús, íconos de bandeja, atajo global e inserción Win32 en una ventana de prueba; usa una carpeta temporal y su propio atajo, así que corre aunque tengas Moji abierto (y falla si no llega al final). `npm run test:package` abre `dist/Moji.exe` como proceso independiente, verifica el atajo, la inserción de un emoji compuesto, el portapapeles intacto y la persistencia tras reiniciar. Las capturas quedan en `.shots/`.
 
-`npm run icons` hornea `assets/icon.ico`, `assets/icon.png` y `assets/tray-{16,20,24,32}.png` desde `tools/icons.mjs`: la carita de la marca sobre la baldosa, con los colores de `tokens.css`. Hasta 24 px usa una versión ajustada al píxel para que se lea en la bandeja. La hoja de control, con cada tamaño a 1:1 y ampliado, queda en `.shots/icons.png`.
+`npm run icons` hornea `assets/icon.ico`, `assets/icon.png` y `assets/tray-{16,20,24,32}.png` desde `tools/icons.mjs`: una carita rellena amarilla, con volumen, sobre la baldosa del color de `tokens.css`. Hasta 24 px usa una versión ajustada al píxel para que se lea en la bandeja. La hoja de control, con cada tamaño a 1:1 y ampliado, queda en `.shots/icons.png`.
 
 `npm run catalog` reconstruye el catálogo desde Emojibase (datos CLDR/Unicode) más la selección local de kaomojis y símbolos. El generador es una herramienta de desarrollo; el programa no necesita la dependencia de datos completa en ejecución.
 

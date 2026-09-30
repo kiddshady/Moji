@@ -1,14 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    MOJI — el ícono, horneado desde el código
-   La carita de la marca (el mismo dibujo que `moji-mark` en app.js) sobre la
-   baldosa de Onyx: a sangre, sin borde, esquinas al 19 %. Mismas proporciones
-   que Tessera, medidas sobre su icon.png: trazo 7,2 % y glifo ~60 % del lienzo.
+   Una carita rellena, amarilla como el emoji clásico, sobre la baldosa de Onyx:
+   a sangre, sin borde, esquinas al 19 %. La cara ocupa el 62 % del lienzo (68 %
+   en la bandeja), con un degradé de amarillo a naranja que le da volumen y ojos
+   y sonrisa marrones. Elegida en una hoja de control entre tres variantes (plana,
+   con volumen, rasgos del color de la baldosa), al lado de Atlas, Beacon, Pharos
+   y Tessera.
 
    Cada tamaño se dibuja a SU tamaño con supermuestreo, no se achica el de 256.
    Hasta 24 px (la bandeja a 100/125/150 %) se usa una versión ajustada al
-   píxel: la marca escalada pegaba ojos y sonrisa al aro y a 16 px era una
-   mancha. Los colores salen de tokens.css, así que un retint.mjs se arrastra
-   con solo volver a correr esto.
+   píxel: a 16 px los ojos caen en columnas enteras y no se funden en la cara.
+   La baldosa sale de tokens.css, así que un retint.mjs se arrastra con solo
+   volver a correr esto; el amarillo es del emoji, no del tema, y no cambia.
 
    Sin dependencias; los encoders PNG/ICO son los de Mnemus.
    `npm run icons` regenera assets/ y deja la hoja de control en .shots/icons.png.
@@ -24,7 +27,7 @@ import { oklchToHex } from './oklch.mjs';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'assets');
 
-/* ── Color: los tokens de la app ─────────────────────────────────────────── */
+/* ── Color ───────────────────────────────────────────────────────────────── */
 
 const css = fs.readFileSync(path.join(ROOT, 'renderer/css/tokens.css'), 'utf8');
 const num = (re, what) => {
@@ -37,48 +40,48 @@ const [TINT] = num(/--ox-tint:\s*([\d.]+)/, '--ox-tint');
 const token = (name) => {
   const [L, C] = num(new RegExp(`--ox-${name}:\\s*oklch\\(([\\d.]+)%\\s+calc\\(([\\d.]+)\\s*\\*\\s*var\\(--ox-tint\\)\\)`), `--ox-${name}`);
   const hex = oklchToHex(L / 100, C * TINT, HUE);
-  return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return rgb(hex);
 };
-const TILE = token('s1');    // el plano del rail y la statusbar
-const INK = token('text');   // primario, nunca blanco puro
+function rgb(hex) { return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)); }
+const TILE = token('s1');            // el plano del rail y la statusbar
+const FACE_TOP = rgb('#ffdb5e');     // la cara, de arriba…
+const FACE_BOTTOM = rgb('#f5a623');  // …a abajo
+const FEATURES = rgb('#5c3a00');     // ojos y sonrisa
 
 /* ── La cara ─────────────────────────────────────────────────────────────── */
 
-/* La marca tal cual, en la grilla 16 del SVG. */
-const MARK = {
-  ring: { cx: 8, cy: 8, r: 6 },
-  eyes: [[5.7, 5.8, 5.7, 6.4], [10.3, 5.8, 10.3, 6.4]],
-  smile: [5.3, 9.4, 8, 12.6, 10.7, 9.4],          // M5.3 9.4 q2.7 3.2 5.4 0
+/* Grilla 16, cara centrada en 8,8. Ojos: segmentos verticales de punta redonda;
+   sonrisa: una cuadrática con trazo. */
+const FACE = {
+  r: 6,
+  eyes: [[6, 5.35, 6, 6.45], [10, 5.35, 10, 6.45]], eyeHalf: 0.66,
+  smile: [4.9, 8.9, 8, 12.9, 11.1, 8.9], smileHalf: 0.62,   // M4.9 8.9 Q8 12.9 11.1 8.9
 };
 
 /* La misma cara para la bandeja, en la grilla del lienzo: a 16 px cada unidad es
-   un píxel, así que el aro, los ojos y el fondo de la sonrisa caen enteros en su
-   fila o columna en vez de repartirse en grises. Elegida entre seis candidatas
-   mirándolas a tamaño real (la sin aro se lee más fuerte, pero ya es otro dibujo). */
+   un píxel. El disco (r 5,5) ocupa el 68 % y los ojos van en las columnas 5 y
+   10 enteras, con la sonrisa apoyada en la fila 10. */
 const HINTED = {
-  ring: { cx: 8, cy: 8, r: 5.5 },
-  eyes: [[5.5, 5.5, 5.5, 6.5], [10.5, 5.5, 10.5, 6.5]],
-  smile: [5.5, 9, 8, 12, 10.5, 9],                // el fondo cae en y = 10,5
+  r: 5.5,
+  eyes: [[5.5, 5.5, 5.5, 6.5], [10.5, 5.5, 10.5, 6.5]], eyeHalf: 0.5,
+  smile: [5.5, 9, 8, 12, 10.5, 9], smileHalf: 0.62,
 };
 
-/* Geometría, trazo y escala (grilla de la cara → grilla 16 del lienzo) por tamaño.
-   Desde 48 px, la proporción de Tessera: aro al 62,5 % del lienzo, trazo 7,2 %. */
+/* Geometría y escala (grilla de la cara → grilla 16 del lienzo) por tamaño. */
 function glyph(size) {
-  if (size <= 24) return prepare(HINTED, 1.25, 1);
-  const [frac, sw] = size >= 48 ? [0.625, 1.57] : [0.68, 1.85];
-  return prepare(MARK, sw, (frac * 16) / (12 + sw));
+  if (size <= 24) return prepare(HINTED, 1);
+  const span = size >= 48 ? 0.62 : 0.68;
+  return prepare(FACE, (span * 16) / (2 * FACE.r));
 }
 
-function prepare(g, sw, scale) {
+function prepare(g, scale) {
   const [x0, y0, cx, cy, x1, y1] = g.smile;
   const smile = [];
   for (let i = 0; i <= 48; i++) {
     const t = i / 48; const u = 1 - t;
     smile.push([u * u * x0 + 2 * u * t * cx + t * t * x1, u * u * y0 + 2 * u * t * cy + t * t * y1]);
   }
-  const ys = smile.map((p) => p[1]);
-  const box = [Math.min(x0, x1) - sw, Math.min(...ys) - sw, Math.max(x0, x1) + sw, Math.max(...ys) + sw];
-  return { ...g, smile, box, half: sw / 2, scale };
+  return { ...g, smile, scale };
 }
 
 function segDist(px, py, ax, ay, bx, by) {
@@ -88,16 +91,15 @@ function segDist(px, py, ax, ay, bx, by) {
   return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
 }
 
-/** ¿El punto (en la grilla de la cara) cae en la tinta? */
-function inGlyph(g, x, y) {
-  const { ring, eyes, smile, box, half } = g;
-  if (Math.abs(Math.hypot(x - ring.cx, y - ring.cy) - ring.r) <= half) return true;
-  for (const [ax, ay, bx, by] of eyes) if (segDist(x, y, ax, ay, bx, by) <= half) return true;
-  if (x < box[0] || y < box[1] || x > box[2] || y > box[3]) return false;
-  for (let i = 0; i < smile.length - 1; i++) {
-    if (segDist(x, y, smile[i][0], smile[i][1], smile[i + 1][0], smile[i + 1][1]) <= half) return true;
+/** El color de un punto (en la grilla de la cara), o null si cae fuera de ella. */
+function faceColor(g, x, y) {
+  if (Math.hypot(x - 8, y - 8) > g.r) return null;
+  for (const [ax, ay, bx, by] of g.eyes) if (segDist(x, y, ax, ay, bx, by) <= g.eyeHalf) return FEATURES;
+  for (let i = 0; i < g.smile.length - 1; i++) {
+    if (segDist(x, y, g.smile[i][0], g.smile[i][1], g.smile[i + 1][0], g.smile[i + 1][1]) <= g.smileHalf) return FEATURES;
   }
-  return false;
+  const t = (y - (8 - g.r)) / (2 * g.r);
+  return FACE_TOP.map((c, i) => c + (FACE_BOTTOM[i] - c) * t);
 }
 
 const TILE_R = 0.19;   // radio de la baldosa sobre el lado
@@ -116,19 +118,20 @@ function render(size) {
 
   for (let py = 0; py < size; py++) {
     for (let px = 0; px < size; px++) {
-      let tile = 0; let ink = 0;
+      let tile = 0; const sum = [0, 0, 0];
       for (let sy = 0; sy < N; sy++) {
         for (let sx = 0; sx < N; sx++) {
           const u = (px + (sx + 0.5) / N) / size;
           const v = (py + (sy + 0.5) / N) / size;
           if (!inTile(u, v)) continue;
           tile++;
-          if (inGlyph(g, (u * 16 - 8) / g.scale + 8, (v * 16 - 8) / g.scale + 8)) ink++;
+          const color = faceColor(g, (u * 16 - 8) / g.scale + 8, (v * 16 - 8) / g.scale + 8) || TILE;
+          for (let c = 0; c < 3; c++) sum[c] += color[c];
         }
       }
       if (!tile) continue;
-      const k = ink / tile; const o = (py * size + px) * 4;
-      for (let c = 0; c < 3; c++) out[o + c] = Math.round(TILE[c] + (INK[c] - TILE[c]) * k);
+      const o = (py * size + px) * 4;
+      for (let c = 0; c < 3; c++) out[o + c] = Math.round(sum[c] / tile);
       out[o + 3] = Math.round((tile / (N * N)) * 255);
     }
   }
@@ -181,7 +184,7 @@ fs.writeFileSync(path.join(ROOT, '.shots/icons.png'), sheet());
 
 const kb = (f) => (fs.statSync(path.join(OUT, f)).size / 1024).toFixed(1);
 const hex = (c) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
-console.log(`baldosa ${hex(TILE)} · tinta ${hex(INK)} (hue ${HUE}, tint ${TINT})`);
+console.log(`baldosa ${hex(TILE)} (hue ${HUE}, tint ${TINT}) · cara ${hex(FACE_TOP)} → ${hex(FACE_BOTTOM)} · rasgos ${hex(FEATURES)}`);
 console.log(`icon.ico  ${kb('icon.ico')} kB  (${ICO_SIZES.join(', ')})`);
 console.log(`icon.png  ${kb('icon.png')} kB`);
 console.log(`tray-*.png  ${TRAY_SIZES.join(', ')}`);

@@ -4,6 +4,8 @@ import {exit} from './motion.js';
 import {searchItems,variant} from './search.mjs';
 Icons.add({
  'moji-mark':'<circle cx="8" cy="8" r="6"/><path d="M5.3 9.4q2.7 3.2 5.4 0M5.7 5.8v.6m4.6-.6v.6"/>',
+ // La carita del ícono de la app (tools/icons.mjs), a color: solo va en la titlebar.
+ 'moji-face':'<defs><linearGradient id="moji-face-fill" x1="0" y1="2" x2="0" y2="14" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffdb5e"/><stop offset="1" stop-color="#f5a623"/></linearGradient></defs><circle cx="8" cy="8" r="6" fill="url(#moji-face-fill)" stroke="none"/><path d="M6 5.35v1.1M10 5.35v1.1" stroke="#5c3a00" stroke-width="1.32"/><path d="M4.9 8.9Q8 12.9 11.1 8.9" stroke="#5c3a00" stroke-width="1.24"/>',
  'moji-smile':'<circle cx="8" cy="8" r="6"/><path d="M5.3 9.4q2.7 3.2 5.4 0M5.7 5.8v.6m4.6-.6v.6"/>',
  'moji-used':'<path d="M2 6a6 6 0 1 1 0 4M2 2v4h4M8 4.5V8l2.3 1.5"/>',
  'moji-kao':'<path d="M3.5 3C.8 5.5.8 10.5 3.5 13M12.5 3c2.7 2.5 2.7 7.5 0 10M5 6.7l1-1 1 1m2 0 1-1 1 1M6.8 10h2.4"/>',
