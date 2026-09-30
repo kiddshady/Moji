@@ -3,8 +3,18 @@ const {app,BrowserWindow,clipboard}=require('electron');
 const fs=require('fs'),path=require('path'),os=require('os'),assert=require('assert/strict');
 const root=path.join(__dirname,'..');
 process.env.MOJI_DATA=fs.mkdtempSync(path.join(os.tmpdir(),'moji-smoke-'));
+// Carpeta de userData propia: con la de siempre, un Moji instalado abierto se queda con
+// el candado de instancia única, main.cjs sale en silencio y el smoke "pasa" sin probar
+// nada. Y un atajo de prueba propio, porque el de fábrica lo tiene tomado ese Moji.
+app.setPath('userData',path.join(process.env.MOJI_DATA,'userdata'));
+const CHORD='Control+Alt+Shift+F9';
+fs.writeFileSync(path.join(process.env.MOJI_DATA,'panel.json'),JSON.stringify({shortcut:CHORD}));
 process.argv.push('--background');
+let passed=false;
+app.on('will-quit',()=>{if(!passed){console.error('SMOKE: Moji se cerró antes de terminar la prueba.');app.exit(1)}});
 const moji=require('../main.cjs');
+// Con un cambio de pestaña, la tanda vieja de resultados convive un instante con la nueva.
+const LIVE='#results>:not([data-state=closing]) .character';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const timeout=setTimeout(()=>{console.error('SMOKE TIMEOUT');app.exit(2)},90000);
 async function until(fn,label){for(let i=0;i<100;i++){if(await fn())return;await sleep(50)}throw new Error('Timeout: '+label)}
@@ -16,17 +26,17 @@ app.whenReady().then(async()=>{
  console.log('Renderer listo');
  const hintTop=()=>js('document.getElementById("preview-hint").getBoundingClientRect().top');
  const idleTop=await hintTop();assert.equal(await js('document.getElementById("preview-label").textContent'),'');
- await js('document.querySelector(".character").dispatchEvent(new Event("mouseenter"))');
+ await js('document.querySelector("'+LIVE+'").dispatchEvent(new MouseEvent("mouseover",{bubbles:true}))');
  assert.notEqual(await js('document.getElementById("preview-label").textContent'),'');assert.equal(await hintTop(),idleTop,'preview hint keeps its place when a label appears');
  assert.equal(await js('document.querySelectorAll(".tab").length'),4);
- assert.equal(await js('document.querySelectorAll(".character").length'),24);
+ assert.equal(await js('document.querySelectorAll("'+LIVE+'").length'),24);
  const out=path.join(root,'.shots');fs.mkdirSync(out,{recursive:true});
  const trayIcon=moji.icon();assert.deepEqual(trayIcon.getSize(),{width:16,height:16});assert.deepEqual([...trayIcon.getScaleFactors()].sort((a,b)=>a-b),[1,1.25,1.5,2]);
  // The first capture right after showing can come back empty until a frame is committed.
  await moji.show(false);await sleep(300);await win.webContents.capturePage();await sleep(300);
  fs.writeFileSync(path.join(out,'frequent.png'),(await win.webContents.capturePage()).toPNG());
  await js('document.getElementById("tab-emoji").click()');
- await until(()=>js('document.querySelectorAll(".character").length').then(n=>n>1800),'emoji grid');
+ await until(()=>js('document.querySelectorAll("'+LIVE+'").length').then(n=>n>1800),'emoji grid');
  await js('document.getElementById("search").value="pulgar arriba";document.getElementById("search").dispatchEvent(new Event("input"))');
  assert(await js(`!!document.querySelector('[data-id="1F44D"]')`));
  console.log('Búsqueda OK');
@@ -44,7 +54,7 @@ app.whenReady().then(async()=>{
  const clip=clipboard.readText();
  // Fire the registered chord via SendInput, rather than calling the toggle callback.
  const koffi=require('koffi'),u=koffi.load('user32.dll'),send=u.func('uint32_t __stdcall SendInput(uint32_t count, const void *events, int size)');
- const keys=[[0x11,0],[0x12,0],[0xBE,0],[0xBE,2],[0x12,2],[0x11,2]],buf=Buffer.alloc(keys.length*40);
+ const keys=[[0x11,0],[0x12,0],[0x10,0],[0x78,0],[0x78,2],[0x10,2],[0x12,2],[0x11,2]],buf=Buffer.alloc(keys.length*40);
  keys.forEach(([key,flag],i)=>{buf.writeUInt32LE(1,i*40);buf.writeUInt16LE(key,i*40+8);buf.writeUInt32LE(flag,i*40+12)});
  assert.equal(send(keys.length,buf,40),keys.length);
  await until(()=>win.isFocused(),'global shortcut');
@@ -56,14 +66,14 @@ app.whenReady().then(async()=>{
  assert.equal(moji.getState().usage.find(i=>i.id==='1F44D').count,1);
  await until(()=>win.isVisible()&&win.isFocused(),'panel stays open and focused after insert');
  await js('document.getElementById("tab-kaomoji").click()');await sleep(150);
- assert(await js('document.querySelectorAll(".character").length')>=60);
+ assert(await js('document.querySelectorAll("'+LIVE+'").length')>=60);
  fs.writeFileSync(path.join(out,'kaomoji.png'),(await win.webContents.capturePage()).toPNG());
- const kao=await js('document.querySelector(".character .glyph").textContent');
- await js('document.querySelector(".character").click()');
+ const kao=await js('document.querySelector("'+LIVE+' .glyph").textContent');
+ await js('document.querySelector("'+LIVE+'").click()');
  await until(async()=>await target.webContents.executeJavaScript('document.getElementById("input").value')==='👍🏻'+kao,'kaomoji inserted');
  await until(()=>win.isVisible()&&win.isFocused(),'panel stays open and focused after insert');await js('document.getElementById("tab-symbol").click()');await sleep(120);
  fs.writeFileSync(path.join(out,'symbols.png'),(await win.webContents.capturePage()).toPNG());
- await js('document.getElementById("search").value="raiz";document.getElementById("search").dispatchEvent(new Event("input"));document.querySelector(".character").click()');
+ await js('document.getElementById("search").value="raiz";document.getElementById("search").dispatchEvent(new Event("input"));document.querySelector("'+LIVE+'").click()');
  await until(async()=>await target.webContents.executeJavaScript('document.getElementById("input").value')==='👍🏻'+kao+'√','symbol inserted');
  await until(()=>win.isVisible()&&win.isFocused(),'panel stays open and focused after insert');
  // Después de insertar, Esc cierra directo aunque haya una búsqueda escrita.
@@ -73,7 +83,7 @@ app.whenReady().then(async()=>{
  assert.equal(await js('document.getElementById("preferences").hidden'),false);
  await js('document.getElementById("back").click()');
  await js('document.getElementById("tab-frequent").click()');await sleep(150);
- assert.equal(await js('document.querySelectorAll(".character").length'),3);
+ assert.equal(await js('document.querySelectorAll("'+LIVE+'").length'),3);
  const disk=JSON.parse(fs.readFileSync(path.join(process.env.MOJI_DATA,'panel.json'),'utf8'));
  assert.equal(disk.usage['1F44D'].tone,1);
  await js('document.getElementById("settings").click();document.getElementById("reset-usage").click()');await sleep(350);
@@ -83,8 +93,9 @@ app.whenReady().then(async()=>{
  assert.equal(moji.getState().usage.length,0);
  await js('document.getElementById("back").click()');
  win.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});await sleep(150);assert(!win.isVisible());
+ assert.equal(moji.getState().shortcut,CHORD);assert.equal(moji.getState().shortcutOK,true,'test shortcut registered');
  assert.deepEqual(errors,[]);
  console.log('SMOKE OK: renderer + búsqueda + tonos + menú + atajo Win32 + inserción emoji/kaomoji/símbolo + portapapeles intacto + frecuencia en disco.');
  console.log('Capturas: '+out);
- target.destroy();clearTimeout(timeout);app.quit();
+ passed=true;target.destroy();clearTimeout(timeout);app.quit();
 }).catch(err=>{console.error(err);clearTimeout(timeout);app.exit(1)});

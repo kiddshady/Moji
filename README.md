@@ -57,7 +57,7 @@ npm run test:package
 
 `npm run build` genera el portable `dist/Moji.exe`. `npm run build:installer` genera el instalador asistido `installer-dist/Moji-Setup-<versión>.exe`, para el usuario actual, con accesos directos, desinstalador y elección de carpeta.
 
-`npm test` comprueba tokens, almacenamiento, búsqueda (incluidos los ejemplos que sugieren los buscadores), catálogo, variantes y codificación UTF-16. `npm run smoke` prueba el renderer real, menús, íconos de bandeja, atajo global e inserción Win32 en una ventana de prueba; usa una carpeta temporal. `npm run test:package` abre `dist/Moji.exe` como proceso independiente, verifica el atajo, la inserción de un emoji compuesto, el portapapeles intacto y la persistencia tras reiniciar. Las capturas quedan en `.shots/`.
+`npm test` comprueba tokens, almacenamiento, búsqueda (incluidos los ejemplos que sugieren los buscadores), catálogo, variantes y codificación UTF-16. `npm run smoke` prueba el renderer real, menús, íconos de bandeja, atajo global e inserción Win32 en una ventana de prueba; usa una carpeta temporal y su propio atajo, así que corre aunque tengas Moji abierto (y falla si no llega al final). `npm run test:package` abre `dist/Moji.exe` como proceso independiente, verifica el atajo, la inserción de un emoji compuesto, el portapapeles intacto y la persistencia tras reiniciar. Las capturas quedan en `.shots/`.
 
 `npm run icons` hornea `assets/icon.ico`, `assets/icon.png` y `assets/tray-{16,20,24,32}.png` desde `tools/icons.mjs`: la carita de la marca sobre la baldosa, con los colores de `tokens.css`. Hasta 24 px usa una versión ajustada al píxel para que se lea en la bandeja. La hoja de control, con cada tamaño a 1:1 y ampliado, queda en `.shots/icons.png`.
 

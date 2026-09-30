@@ -49,6 +49,8 @@ function toggle() { win?.isVisible() && win.isFocused() ? hide(true) : show(); }
 function registerShortcut(value) {
   if (typeof value==='string') value=value.replace(/\+Period$/i,'+.');
   if (typeof value!=='string' || value.length>80 || !/^(Control|Alt|Shift|Super)(\+(Control|Alt|Shift|Super))*\+([A-Z0-9.]|Space|F\d{1,2})$/.test(value)) throw new Error('Usá un modificador y una letra, número, punto, espacio o tecla de función.');
+  // Con Shift solo, el atajo global se comería mayúsculas y signos en todas las apps.
+  if (!/(^|\+)(Control|Alt|Super)\+/.test(value)) throw new Error('Sumá Ctrl, Alt o Win: con Shift solo se bloquearían las mayúsculas y los signos en las demás apps.');
   if (value===state.shortcut && registered) return;
   let success=false;
   try { success=globalShortcut.register(value,toggle); } catch {}
