@@ -13,6 +13,7 @@ Icons.add({
  'moji-search':'<circle cx="6.7" cy="6.7" r="4.7"/><path d="m10.2 10.2 3.8 3.8"/>',
  'moji-close':'<path d="m4 4 8 8M4 12l8-8"/>',
  'moji-back':'<path d="m9 3-5 5 5 5M4 8h9"/>',
+ 'moji-power':'<path d="M8 2.2v5.3M4.5 4.3a5 5 0 1 0 7 0"/>',
  'moji-settings':'<path d="M3 4h10M3 8h10M3 12h10"/><circle cx="6" cy="4" r="1.5" fill="var(--ox-bg)"/><circle cx="10" cy="8" r="1.5" fill="var(--ox-bg)"/><circle cx="6" cy="12" r="1.5" fill="var(--ox-bg)"/>',
 });
 Icons.mount();Tooltip.init();
@@ -96,7 +97,8 @@ async function choose(item,copyOnly=false){if(sending)return;sending=true;Toolti
 // El main baja la versión nueva solo (src/updater.cjs); acá solo se cuenta y se ofrece instalar.
 const updateText={dev:()=>'Corriendo desde el código: se actualiza la versión instalada.',portable:()=>'Versión portable: bajá la nueva desde GitHub.',idle:()=>'Se buscan solas al abrir Moji.',checking:()=>'Buscando…',none:()=>'Tenés la última versión.',downloading:u=>`Bajando la ${u.version}… ${u.percent||0} %`,ready:u=>`La ${u.version} está lista para instalarse.`,error:()=>'No se pudo buscar. Revisá la conexión.'};
 let announced='';
-function renderUpdate(u){state.update=u;$('update-status').textContent=(updateText[u.state]||updateText.idle)(u);const b=$('update-action');b.hidden=['dev','portable','downloading'].includes(u.state);b.disabled=u.state==='checking';b.textContent=u.state==='ready'?'Instalar y reiniciar':u.state==='error'?'Reintentar':'Buscar ahora'}
+// Con la versión lista, el botón pasa a primario: es la única acción que importa en Ajustes.
+function renderUpdate(u){state.update=u;$('update-status').textContent=(updateText[u.state]||updateText.idle)(u);const b=$('update-action'),ready=u.state==='ready';b.classList.toggle('is-off',['dev','portable','downloading'].includes(u.state));b.disabled=u.state==='checking';b.classList.toggle('ox-btn--primary',ready);b.classList.toggle('ox-btn--secondary',!ready);b.setAttribute('aria-label',ready?'Instalar y reiniciar':u.state==='error'?'Reintentar':'Buscar actualizaciones');b.innerHTML=Icons.svg(ready?'download':'retry')+`<span>${ready?'Instalar':u.state==='error'?'Reintentar':'Buscar'}</span>`}
 $('update-action').onclick=async()=>{if(state.update?.state==='ready'){api.installUpdate();return}try{renderUpdate(await api.checkUpdate())}catch(e){notice(e.message,true)}};
 api.onUpdate(u=>{if(!state)return;renderUpdate(u);if(u.state==='ready'&&announced!==u.version&&!settingsOpen){announced=u.version;notice(`Moji ${u.version} está lista: instalala desde Ajustes`)}});
 // Panel y Ajustes ocupan la misma celda: la que se va se desvanece y la otra entra
