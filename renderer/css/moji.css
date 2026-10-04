@@ -1,21 +1,462 @@
-body{display:grid;grid-template-rows:auto minmax(0,1fr);grid-template-columns:minmax(0,1fr);width:100vw;height:100vh;overflow:hidden;box-shadow:inset 0 0 0 1px var(--ox-line-2);border-radius:10px;background:var(--ox-bg);--ox-surface:var(--ox-bg)}
-button,input{-webkit-app-region:no-drag}button{cursor:pointer}button:disabled{cursor:default;opacity:.5}button:focus-visible,input:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ox-ring)}
-[hidden]{display:none!important}.ox-icon{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.titlebar{height:45px;min-height:45px;display:flex;align-items:center;padding:0 10px 0 18px;gap:4px;-webkit-app-region:drag}.brand{display:flex;align-items:center;gap:9px;flex:1;font-size:14px;font-weight:600;letter-spacing:-.3px}.brand>.ox-icon{width:19px;height:19px}
-.icon-button{width:29px;height:29px;display:grid;place-items:center;color:var(--ox-text-3);border:0;border-radius:7px;background:transparent;transition:var(--tr-color)}.icon-button:hover{background:var(--ox-s3);color:var(--ox-text)}
-#panel{min-height:0;display:flex;flex-direction:column}#tabs{display:grid;grid-template-columns:repeat(4,1fr);padding:0 15px;box-shadow:inset 0 -1px var(--ox-line);gap:3px;height:61px;flex-shrink:0}.tab{position:relative;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--ox-text-3);font-size:10px;transition:var(--tr-color);border-radius:8px 8px 0 0}.tab>.ox-icon{width:19px;height:19px}.tab:hover{color:var(--ox-text);background:var(--ox-wash-1)}.tab[aria-selected=true]{color:var(--ox-text);background:linear-gradient(0deg,var(--ox-wash-1),transparent)}.tab::after{content:'';position:absolute;bottom:0;height:2px;left:29px;right:29px;border-radius:3px;background:var(--ox-accent);opacity:0;transform:scaleX(.4);transition:opacity var(--ox-t-2) var(--ox-ease-soft),transform var(--ox-t-2) var(--ox-ease)}.tab[aria-selected=true]::after{opacity:1;transform:scaleX(1)}
-.search-wrap{height:39px;flex-shrink:0;display:flex;align-items:center;gap:10px;margin:16px 18px 0;padding:0 11px;background:var(--ox-s2);border-radius:9px;box-shadow:inset 0 0 0 1px var(--ox-line);color:var(--ox-text-3);transition:box-shadow var(--ox-t-2) var(--ox-ease-soft)}.search-wrap:focus-within{box-shadow:inset 0 0 0 1px var(--ox-line-3)}#search{width:100%;min-width:0;border:0;box-shadow:none!important;background:none;color:var(--ox-text);font:12px var(--ox-font);outline:0;height:100%}#search::placeholder{color:var(--ox-text-4)}#search::-webkit-search-cancel-button{display:none}kbd{font:10px var(--ox-mono);padding:1px 5px;border-radius:4px;box-shadow:var(--ox-hairline);color:var(--ox-text-4)}
-.categories{margin:10px 18px 0;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;min-height:32px;align-items:center;padding-bottom:5px;scrollbar-width:thin;scrollbar-color:var(--ox-s4) transparent}.category{white-space:nowrap;padding:5px 9px;border-radius:6px;background:none;border:0;color:var(--ox-text-3);font-size:10px;transition:var(--tr-color)}.category:hover{background:var(--ox-s2);color:var(--ox-text)}.category[aria-pressed=true]{background:var(--ox-s3);color:var(--ox-text)}
-.section-label{display:flex;justify-content:space-between;align-items:center;margin:9px 22px 7px;font-size:10px;color:var(--ox-text-3);height:15px;flex-shrink:0}#result-count{font-family:var(--ox-mono);font-size:9px;color:var(--ox-text-4)}
-.results{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;padding:3px 17px 15px;scrollbar-gutter:stable;scrollbar-width:thin;--ox-fade:12px;mask-image:linear-gradient(to bottom,transparent,#000 3px,#000 calc(100% - 12px),transparent)}.results>*{grid-area:1/1}.result-set{animation:content-in var(--ox-t-2) var(--ox-ease) both}.result-set.is-after{animation-delay:80ms}.result-set.is-settled{animation:none}.result-set[data-state=closing]{animation:content-out 160ms var(--ox-ease-both) both;pointer-events:none}.grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:3px;align-content:start}.character{height:42px;min-width:0;position:relative;content-visibility:auto;contain-intrinsic-size:auto 42px;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:transparent;transition:var(--tr-color),transform var(--ox-t-1) var(--ox-ease-soft)}.character:hover{background:var(--ox-s3);transform:translateY(-1px)}.character:active{transform:scale(.91)}.glyph{font:27px/1.2 'Segoe UI Emoji','Segoe UI Symbol',sans-serif;pointer-events:none}.grid.kaomoji{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.kaomoji .character{height:51px;background:var(--ox-s1);box-shadow:var(--ox-hairline)}.kaomoji .character:hover{background:var(--ox-s3)}.kaomoji .glyph{font:13px/1.4 'Segoe UI','Yu Gothic UI',sans-serif}.symbol .glyph{font:24px/1.2 'Segoe UI Symbol','Cambria Math',sans-serif}.mixed .character[data-kind=kaomoji]{grid-column:span 3}.mixed .character[data-kind=kaomoji] .glyph{font-size:13px}.group-title{grid-column:1/-1;margin:12px 5px 5px;font-size:10px;font-weight:500;color:var(--ox-text-3)}.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;text-align:center;color:var(--ox-text-3);font-size:12px;gap:12px}.empty .ox-icon{width:32px;height:32px;color:var(--ox-text-4)}.empty small{font-size:11px;color:var(--ox-text-4)}
-.preview{height:66px;flex-shrink:0;display:flex;align-items:center;gap:11px;padding:0 18px;background:var(--ox-s1);box-shadow:inset 0 1px var(--ox-line)}.preview-char{width:34px;text-align:center;flex-shrink:0;font:29px 'Segoe UI Emoji','Segoe UI Symbol',sans-serif}.preview-char.kao-preview{font-size:11px;width:75px}.preview-info{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}#preview-label{font-size:11px;min-height:1lh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#preview-hint{font-size:9px;color:var(--ox-text-4)}.tone-control{width:30px;height:30px;border:0;background:var(--ox-s2);border-radius:8px;display:grid;place-items:center;box-shadow:var(--ox-hairline);transition:var(--tr-color),opacity var(--ox-t-1) var(--ox-ease-soft),visibility var(--ox-t-1)}.tone-dot{width:15px;height:15px;border-radius:50%;background:#f4c542;box-shadow:inset 0 0 0 1px #ffffff20}
-#preferences{overflow-y:auto;padding:5px 20px 18px}.preferences-head{display:flex;align-items:center;gap:7px;margin-bottom:17px}.preferences-head h1{font-size:18px;font-weight:500;letter-spacing:-.5px}.setting-card{margin-bottom:12px;padding:14px;background:var(--ox-s1);border-radius:10px}.setting-card label{font-size:12px;color:var(--ox-text)}.setting-card p{margin:5px 0 9px;font-size:11px;color:var(--ox-text-3)}#shortcut{width:100%;height:35px;border:0;border-radius:7px;background:var(--ox-s3);color:var(--ox-text);text-align:center;font:12px var(--ox-mono);cursor:pointer;transition:var(--tr-color)}#shortcut-status{display:block;font-size:10px;color:var(--ox-text-3);margin-top:6px;min-height:12px}.setting-row{display:flex;align-items:center;justify-content:space-between}.setting-row p{margin-bottom:0}.switch{height:22px;width:37px;border:0;border-radius:20px;padding:3px;background:var(--ox-s4);transition:background-color var(--ox-t-2) var(--ox-ease-soft),box-shadow var(--ox-t-1) var(--ox-ease-soft)}.switch span{display:block;width:16px;height:16px;background:var(--ox-text-3);border-radius:50%;transition:transform var(--ox-t-2) var(--ox-ease),background-color var(--ox-t-2) var(--ox-ease-soft)}.switch[aria-checked=true]{background:var(--ox-accent)}.switch[aria-checked=true] span{transform:translateX(15px);background:var(--ox-bg)}.about{text-align:center;margin-top:17px;color:var(--ox-text-3);font-size:12px}.about>.ox-icon{vertical-align:middle;margin-right:6px}.about small{color:var(--ox-text-4);font:10px var(--ox-mono);margin-left:5px}.about p{font-size:11px;line-height:1.7;margin:7px 7px 12px}
-#notice{position:fixed;bottom:76px;left:18px;right:18px;padding:12px 14px;border-radius:9px;background:var(--ox-s4);box-shadow:var(--ox-e3),var(--ox-hairline);font-size:11px;line-height:1.5;color:var(--ox-text);z-index:99;animation:content-in var(--ox-t-2) var(--ox-ease) both}#notice.is-settled{animation:none}#notice[data-state=closing]{animation:content-out 140ms var(--ox-ease-in) both}#notice.error{box-shadow:var(--ox-e3),inset 0 0 0 1px var(--ox-danger-dim)}
-.results,.categories{scrollbar-width:auto;scrollbar-color:auto}.categories::-webkit-scrollbar{height:4px}.results::-webkit-scrollbar{width:7px}.results::-webkit-scrollbar-thumb,.categories::-webkit-scrollbar-thumb{background:var(--ox-s4);border:0;border-radius:8px}::-webkit-scrollbar-button{display:none;width:0;height:0}.about>.ox-icon{display:inline-block}.about>span{display:inline-block}
-@keyframes content-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes content-out{from{opacity:1}to{opacity:0}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important}}
-/* Panel y Ajustes: misma celda, relevo. La entrada se apaga con .is-settled, declarado antes que la salida para que salir siempre gane. */
-#panel,#preferences{grid-area:2/1;animation:content-in var(--ox-t-2) var(--ox-ease) both}#panel.is-after,#preferences.is-after{animation-delay:80ms}#panel.is-settled,#preferences.is-settled{animation:none}#panel[data-state=closing],#preferences[data-state=closing]{animation:content-out 160ms var(--ox-ease-both) both;pointer-events:none}
-/* La X de la búsqueda y el / comparten lugar y se relevan con un fundido; el tono se apaga igual en Kaomojis y Símbolos. */
-.search-end{display:grid;place-items:center;flex-shrink:0}.search-end>*{grid-area:1/1;transition:var(--tr-color),opacity var(--ox-t-1) var(--ox-ease-soft),visibility var(--ox-t-1)}.search-end>.is-off,.tone-control.is-off{opacity:0;visibility:hidden;pointer-events:none}
-/* Botones de Ajustes: los de Onyx. La fila deja el texto a la izquierda y el botón a la derecha; el de actualizaciones se apaga con un fundido mientras no hay nada que hacer (código, portable, bajando). */
-.ox-btn{cursor:pointer}.setting-row{gap:14px}.setting-row>div{min-width:0}.setting-row>.ox-btn{flex-shrink:0}#update-action{transition:var(--tr-color),transform var(--ox-t-1) var(--ox-ease-soft),opacity var(--ox-t-1) var(--ox-ease-soft),visibility var(--ox-t-1)}#update-action.is-off{opacity:0;visibility:hidden;pointer-events:none}
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOJI — el panel
+   Lo propio de la app, encima de Onyx (tokens, base, motion, controls,
+   overlays). Una ventana chica de 416 × 536: titlebar, y debajo, en la misma
+   celda, el panel o Ajustes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--ox-line-2);
+  border-radius: 10px;
+  background: var(--ox-bg);
+  --ox-surface: var(--ox-bg);
+}
+
+button, input { -webkit-app-region: no-drag; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .5; }
+button:focus-visible,
+input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ox-ring); }
+[hidden] { display: none !important; }
+
+.ox-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ── Titlebar ─────────────────────────────────────────────────────────────── */
+
+.titlebar {
+  height: 45px;
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px 0 18px;
+  -webkit-app-region: drag;
+}
+.brand {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -.3px;
+}
+.brand > .ox-icon { width: 19px; height: 19px; }
+
+.icon-button {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  color: var(--ox-text-3);
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  transition: var(--tr-color);
+}
+.icon-button:hover { background: var(--ox-s3); color: var(--ox-text); }
+
+/* ── Panel y Ajustes: misma celda, relevo ─────────────────────────────────────
+   La entrada se apaga con .is-settled, declarado antes que la salida para que
+   salir siempre gane. */
+
+#panel, #preferences {
+  grid-area: 2 / 1;
+  animation: content-in var(--ox-t-2) var(--ox-ease) both;
+}
+#panel.is-after, #preferences.is-after { animation-delay: 80ms; }
+#panel.is-settled, #preferences.is-settled { animation: none; }
+#panel[data-state=closing], #preferences[data-state=closing] {
+  animation: content-out 160ms var(--ox-ease-both) both;
+  pointer-events: none;
+}
+
+#panel { min-height: 0; display: flex; flex-direction: column; }
+
+/* ── Pestañas ─────────────────────────────────────────────────────────────── */
+
+#tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  height: 61px;
+  flex-shrink: 0;
+  padding: 0 15px;
+  box-shadow: inset 0 -1px var(--ox-line);
+}
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: none;
+  color: var(--ox-text-3);
+  font-size: var(--ox-fs-11);
+  transition: var(--tr-color);
+}
+.tab > .ox-icon { width: 19px; height: 19px; }
+.tab:hover { color: var(--ox-text); background: var(--ox-wash-1); }
+.tab[aria-selected=true] { color: var(--ox-text); background: linear-gradient(0deg, var(--ox-wash-1), transparent); }
+.tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 29px;
+  right: 29px;
+  height: 2px;
+  border-radius: 3px;
+  background: var(--ox-accent);
+  opacity: 0;
+  transform: scaleX(.4);
+  transition: opacity var(--ox-t-2) var(--ox-ease-soft), transform var(--ox-t-2) var(--ox-ease);
+}
+.tab[aria-selected=true]::after { opacity: 1; transform: scaleX(1); }
+
+/* ── Búsqueda ─────────────────────────────────────────────────────────────── */
+
+.search-wrap {
+  height: 39px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 18px 0;
+  padding: 0 11px;
+  border-radius: 9px;
+  background: var(--ox-s2);
+  box-shadow: inset 0 0 0 1px var(--ox-line);
+  color: var(--ox-text-3);
+  transition: box-shadow var(--ox-t-2) var(--ox-ease-soft);
+}
+.search-wrap:focus-within { box-shadow: inset 0 0 0 1px var(--ox-line-3); }
+#search {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  box-shadow: none !important;
+  background: none;
+  color: var(--ox-text);
+  font: var(--ox-fs-12) var(--ox-font);
+  outline: 0;
+}
+#search::placeholder { color: var(--ox-text-4); }
+#search::-webkit-search-cancel-button { display: none; }
+kbd {
+  padding: 1px 5px;
+  border-radius: 4px;
+  box-shadow: var(--ox-hairline);
+  color: var(--ox-text-4);
+  font: 10px var(--ox-mono);
+}
+
+/* La X de la búsqueda y el / comparten lugar y se relevan con un fundido; el
+   tono se apaga igual en Kaomojis y Símbolos. */
+.search-end { display: grid; place-items: center; flex-shrink: 0; }
+.search-end > * {
+  grid-area: 1 / 1;
+  transition: var(--tr-color), opacity var(--ox-t-1) var(--ox-ease-soft), visibility var(--ox-t-1);
+}
+.search-end > .is-off,
+.tone-control.is-off { opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* ── Categorías ───────────────────────────────────────────────────────────────
+   Una tira que se corre a lo ancho (con la rueda, ver app.js) y sin barra:
+   donde recorta, se esfuma. Del lado en que está pegada al borde corta limpio
+   (.is-start / .is-end, los pone edgeFade en app.js). El fade anima por lado
+   con las @property de base.css. */
+
+.categories {
+  --ox-fade: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  margin: 10px 18px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  --ox-fade-left: var(--ox-fade);
+  --ox-fade-right: var(--ox-fade);
+  transition: --ox-fade-left var(--ox-t-3) var(--ox-ease-soft), --ox-fade-right var(--ox-t-3) var(--ox-ease-soft);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--ox-fade-left), #000 calc(100% - var(--ox-fade-right)), transparent 100%);
+}
+.categories::-webkit-scrollbar { display: none; }
+.categories.is-start { --ox-fade-left: 0px; }
+.categories.is-end { --ox-fade-right: 0px; }
+.categories.is-start.is-end { mask-image: none; }
+
+.category {
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ox-text-3);
+  font-size: var(--ox-fs-11);
+  white-space: nowrap;
+  transition: var(--tr-color);
+}
+.category:hover { background: var(--ox-s2); color: var(--ox-text); }
+.category[aria-pressed=true] { background: var(--ox-s3); color: var(--ox-text); }
+
+/* ── Encabezado de la grilla ──────────────────────────────────────────────── */
+
+.section-label {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 15px;
+  margin: 9px 22px 4px;
+  color: var(--ox-text-3);
+  font-size: var(--ox-fs-11);
+}
+#result-count { color: var(--ox-text-4); font: var(--ox-fs-10) var(--ox-mono); }
+
+/* ── La grilla ────────────────────────────────────────────────────────────────
+   El scroll de Onyx (.ox-scroll + scrollFade): arriba se esfuma solo cuando
+   hay algo recortado; abajo corta limpio contra la línea del pie. La tanda
+   vieja y la nueva comparten celda durante el relevo (mount, en app.js). */
+
+.results {
+  --ox-fade: 14px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  padding: var(--ox-fade) 17px 15px;
+  scrollbar-gutter: stable;
+}
+.results > * { grid-area: 1 / 1; }
+.results::-webkit-scrollbar { width: 7px; }
+.results::-webkit-scrollbar-thumb { background: var(--ox-s4); border: 0; border-radius: 8px; }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+
+.result-set { animation: content-in var(--ox-t-2) var(--ox-ease) both; }
+.result-set.is-after { animation-delay: 80ms; }
+.result-set.is-settled { animation: none; }
+.result-set[data-state=closing] { animation: content-out 160ms var(--ox-ease-both) both; pointer-events: none; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 3px;
+  align-content: start;
+}
+.character {
+  position: relative;
+  min-width: 0;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 42px;
+  transition: var(--tr-color), transform var(--ox-t-1) var(--ox-ease-soft);
+}
+.character:hover { background: var(--ox-s3); transform: translateY(-1px); }
+.character:active { transform: scale(.91); }
+.glyph { font: 27px/1.2 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; pointer-events: none; }
+
+.grid.kaomoji { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.kaomoji .character { height: 51px; background: var(--ox-s1); box-shadow: var(--ox-hairline); }
+.kaomoji .character:hover { background: var(--ox-s3); }
+.kaomoji .glyph { font: 13px/1.4 'Segoe UI', 'Yu Gothic UI', sans-serif; }
+.symbol .glyph { font: 24px/1.2 'Segoe UI Symbol', 'Cambria Math', sans-serif; }
+.mixed .character[data-kind=kaomoji] { grid-column: span 3; }
+.mixed .character[data-kind=kaomoji] .glyph { font-size: 13px; }
+
+/* El título de cada grupo en «Todos» (Caritas y emociones, Animales…): ocupa
+   la fila entera. El primero va pegado al encabezado. */
+.group-title {
+  grid-column: 1 / -1;
+  margin: 14px 5px 4px;
+  color: var(--ox-text-3);
+  font-size: var(--ox-fs-11);
+  font-weight: 500;
+}
+.group-title:first-child { margin-top: 2px; }
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 160px;
+  text-align: center;
+  color: var(--ox-text-3);
+  font-size: var(--ox-fs-12);
+}
+.empty .ox-icon { width: 32px; height: 32px; color: var(--ox-text-4); }
+.empty small { color: var(--ox-text-4); font-size: var(--ox-fs-11); }
+
+/* ── El pie: vista previa y tono ─────────────────────────────────────────── */
+
+.preview {
+  height: 66px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 18px;
+  background: var(--ox-s1);
+  box-shadow: inset 0 1px var(--ox-line);
+}
+.preview-char {
+  width: 34px;
+  flex-shrink: 0;
+  text-align: center;
+  font: 29px 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+}
+.preview-char.kao-preview { width: 75px; font-size: var(--ox-fs-11); }
+.preview-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+#preview-label {
+  min-height: 1lh;
+  font-size: var(--ox-fs-12);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#preview-hint { color: var(--ox-text-4); font-size: var(--ox-fs-10); }
+
+.tone-control {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ox-s2);
+  box-shadow: var(--ox-hairline);
+  transition: var(--tr-color), opacity var(--ox-t-1) var(--ox-ease-soft), visibility var(--ox-t-1);
+}
+.tone-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #f4c542;
+  box-shadow: inset 0 0 0 1px #ffffff20;
+  transition: background-color var(--ox-t-2) var(--ox-ease-soft);
+}
+/* En el menú de tonos, el puntito es el mismo de este botón. */
+.ox-menuitem__dot { width: 10px; height: 10px; margin: 0 2px; border-radius: 50%; box-shadow: inset 0 0 0 1px #ffffff20; }
+
+/* ── Ajustes ──────────────────────────────────────────────────────────────── */
+
+#preferences { overflow-y: auto; padding: 5px 20px 18px; }
+.preferences-head { display: flex; align-items: center; gap: 7px; margin-bottom: 17px; }
+.preferences-head h1 { font-size: 18px; font-weight: 500; letter-spacing: -.5px; }
+
+.setting-card { margin-bottom: 12px; padding: 14px; border-radius: 10px; background: var(--ox-s1); }
+.setting-card label { color: var(--ox-text); font-size: var(--ox-fs-12); }
+.setting-card p { margin: 5px 0 9px; color: var(--ox-text-3); font-size: var(--ox-fs-11); }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.setting-row p { margin-bottom: 0; }
+.setting-row > div { min-width: 0; }
+.setting-row > .ox-btn { flex-shrink: 0; }
+
+#shortcut {
+  width: 100%;
+  height: 35px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--ox-s3);
+  color: var(--ox-text);
+  text-align: center;
+  font: var(--ox-fs-12) var(--ox-mono);
+  cursor: pointer;
+  transition: var(--tr-color);
+}
+#shortcut-status { display: block; min-height: 1lh; margin-top: 6px; color: var(--ox-text-3); font-size: var(--ox-fs-11); }
+
+.switch {
+  width: 37px;
+  height: 22px;
+  padding: 3px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--ox-s4);
+  transition: background-color var(--ox-t-2) var(--ox-ease-soft), box-shadow var(--ox-t-1) var(--ox-ease-soft);
+}
+.switch span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ox-text-3);
+  transition: transform var(--ox-t-2) var(--ox-ease), background-color var(--ox-t-2) var(--ox-ease-soft);
+}
+.switch[aria-checked=true] { background: var(--ox-accent); }
+.switch[aria-checked=true] span { transform: translateX(15px); background: var(--ox-bg); }
+
+/* Botones de Ajustes: los de Onyx. El de actualizaciones se apaga con un
+   fundido mientras no hay nada que hacer (código, portable, bajando). */
+.ox-btn { cursor: pointer; }
+#update-action {
+  transition: var(--tr-color), transform var(--ox-t-1) var(--ox-ease-soft), opacity var(--ox-t-1) var(--ox-ease-soft), visibility var(--ox-t-1);
+}
+#update-action.is-off { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.about { margin-top: 17px; text-align: center; color: var(--ox-text-3); font-size: var(--ox-fs-12); }
+.about > .ox-icon { display: inline-block; vertical-align: middle; margin-right: 6px; }
+.about > span { display: inline-block; }
+.about small { margin-left: 5px; color: var(--ox-text-4); font: var(--ox-fs-10) var(--ox-mono); }
+.about p { margin: 7px 7px 12px; font-size: var(--ox-fs-11); line-height: 1.7; }
+
+/* ── El aviso ─────────────────────────────────────────────────────────────── */
+
+#notice {
+  position: fixed;
+  bottom: 76px;
+  left: 18px;
+  right: 18px;
+  z-index: 99;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: var(--ox-s4);
+  box-shadow: var(--ox-e3), var(--ox-hairline);
+  color: var(--ox-text);
+  font-size: var(--ox-fs-12);
+  line-height: 1.5;
+  animation: content-in var(--ox-t-2) var(--ox-ease) both;
+}
+#notice.is-settled { animation: none; }
+#notice[data-state=closing] { animation: content-out 140ms var(--ox-ease-in) both; }
+#notice.error { box-shadow: var(--ox-e3), inset 0 0 0 1px var(--ox-danger-dim); }
+.notice-text { display: block; }
+
+/* ── Movimiento ───────────────────────────────────────────────────────────── */
+
+@keyframes content-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes content-out { from { opacity: 1; } to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}

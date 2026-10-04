@@ -32,9 +32,9 @@ git push --follow-tags   # el workflow arma el instalador y publica el Release
 
 ## Contenido
 
-Cuatro pestañas: Más usados, Emojis, Kaomojis y Símbolos. El catálogo se incluye en el ejecutable y funciona offline. Los emojis usan la fuente Segoe UI Emoji de Windows: el aspecto y la disponibilidad visual de los más recientes dependen de la versión de esa fuente.
+Cuatro pestañas: Más usados, Emojis, Kaomojis y Símbolos. En «Todos» cada pestaña va agrupada, con un título por categoría; elegir una categoría o buscar muestra solo lo que coincide. El catálogo se incluye en el ejecutable y funciona offline. Los emojis usan la fuente Segoe UI Emoji de Windows: el aspecto y la disponibilidad visual de los más recientes dependen de la versión de esa fuente.
 
-La búsqueda admite nombres y palabras clave en español e inglés, sin exigir tildes. Hay seis opciones de tono de piel. Más usados ordena por cantidad de selecciones y, en caso de empate, por la última selección; recuerda el tono utilizado. En una instalación nueva se muestran sugerencias bajo «Para empezar» hasta que empieces a usarlo.
+La búsqueda admite nombres y palabras clave en español e inglés, sin exigir tildes. Hay seis opciones de tono de piel, con su color en el menú. Más usados ordena por cantidad de selecciones y, en caso de empate, por la última selección; recuerda el tono utilizado. En una instalación nueva se muestran sugerencias bajo «Para empezar» hasta que empieces a usarlo.
 
 No incluye GIFs, historial del portapapeles ni cuentas. La inserción normal no lee ni modifica el portapapeles. El menú Copiar sí lo modifica por pedido explícito.
 
@@ -57,11 +57,11 @@ npm run test:package
 
 `npm run build` genera el portable `dist/Moji.exe`. `npm run build:installer` genera el instalador asistido `installer-dist/Moji-Setup-<versión>.exe`, para el usuario actual, con accesos directos, desinstalador y elección de carpeta.
 
-`npm test` comprueba tokens, almacenamiento, búsqueda (incluidos los ejemplos que sugieren los buscadores), catálogo, variantes y codificación UTF-16. `npm run smoke` prueba el renderer real, menús, íconos de bandeja, atajo global e inserción Win32 en una ventana de prueba; usa una carpeta temporal y su propio atajo, así que corre aunque tengas Moji abierto (y falla si no llega al final). `npm run test:package` abre `dist/Moji.exe` como proceso independiente, verifica el atajo, la inserción de un emoji compuesto, el portapapeles intacto y la persistencia tras reiniciar. Las capturas quedan en `.shots/`.
+`npm test` comprueba tokens, almacenamiento, búsqueda (incluidos los ejemplos que sugieren los buscadores), catálogo, variantes y codificación UTF-16. `npm run smoke` prueba el renderer real, menús, íconos de bandeja, atajo global e inserción Win32 en una ventana de prueba; usa una carpeta temporal y su propio atajo, así que corre aunque tengas Moji abierto (y falla si no llega al final). `npm run test:package` abre `dist/Moji.exe` como proceso independiente, con su propio perfil y su propio atajo (corre aunque tengas Moji abierto), verifica el atajo, la inserción de un emoji compuesto, el portapapeles intacto y la persistencia tras reiniciar. Las capturas quedan en `.shots/`.
 
 `npm run icons` hornea `assets/icon.ico`, `assets/icon.png` y `assets/tray-{16,20,24,32}.png` desde `tools/icons.mjs`: una carita rellena amarilla, con volumen, sobre la baldosa del color de `tokens.css`. Hasta 24 px usa una versión ajustada al píxel para que se lea en la bandeja. La hoja de control, con cada tamaño a 1:1 y ampliado, queda en `.shots/icons.png`.
 
-`npm run catalog` reconstruye el catálogo desde Emojibase (datos CLDR/Unicode) más la selección local de kaomojis y símbolos. El generador es una herramienta de desarrollo; el programa no necesita la dependencia de datos completa en ejecución.
+`npm run catalog` reconstruye el catálogo desde Emojibase (datos CLDR/Unicode) más la selección local de kaomojis y símbolos. Los kaomojis llevan un nombre propio (es lo que dicen el tooltip y la vista previa). Los ids no se tocan nunca: Más usados guarda los usos por id. El generador es una herramienta de desarrollo; el programa no necesita la dependencia de datos completa en ejecución.
 
 ## Implementación y límites
 
