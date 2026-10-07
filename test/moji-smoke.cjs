@@ -192,6 +192,26 @@ app.whenReady().then(async () => {
   await shot('settings.png');
   assert.equal(await js('document.getElementById("preferences").hidden'), false);
   assert.equal(await js('document.getElementById("version").textContent'), require('../package.json').version);
+
+  /* El scroll de Ajustes: en reposo arriba no esfuma (no se come el título);
+     a mitad de camino, arriba se esfuma (la titlebar no tiene línea) y abajo
+     corta limpio contra el borde de la ventana. La scrollbar queda fuera de
+     la máscara. */
+  const fade = () => js(`(()=>{const p=document.getElementById("preferences"),cs=getComputedStyle(p);
+    return {top:cs.getPropertyValue("--op-fade-top").trim(),bottom:cs.getPropertyValue("--op-fade-bottom").trim(),
+      slack:p.scrollHeight-p.clientHeight,size:cs.maskSize}})()`);
+  await sleep(300);
+  assert.equal((await fade()).top, '0px', 'settings: no top fade at rest');
+  const slack = (await fade()).slack;
+  assert(slack > 20, `settings scrolls (${slack}px)`);
+  await js(`document.getElementById("preferences").scrollTop=${Math.round(slack / 2)}`);
+  await sleep(500);   // --op-t-3: el fade entra animado
+  const mid = await fade();
+  assert.equal(mid.top, '14px', 'settings: top fades when scrolled');
+  assert.equal(mid.bottom, '0px', 'settings: bottom cuts clean against the window edge');
+  assert(mid.size.includes('calc(100% - 10px)'), `settings: scrollbar outside the mask (${mid.size})`);
+  await shot('settings-scroll.png');
+  await js('document.getElementById("preferences").scrollTop=0');
   await js('document.getElementById("back").click()');
 
   await js('document.getElementById("tab-frequent").click()');

@@ -725,6 +725,7 @@ try {
   ]);
   byId = new Map(catalog.items.map((i) => [i.id, i]));
   scrollFade($('results'));
+  scrollFade($('preferences'));
   renderTabs();
   render();
   const splash = $('boot-splash');

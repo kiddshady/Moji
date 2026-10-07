@@ -76,7 +76,7 @@ p, code, pre,
 /* ── Scrollbar propia ────────────────────────────────────────────────────────
    Fina, sin flechas, y el thumb se materializa con el hover del contenedor.
    Nunca la gris de Windows. */
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }   /* = --op-sb de .op-scroll */
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -222,13 +222,24 @@ p, code, pre,
   --op-fade-bottom: var(--op-fade);
   transition: --op-fade-top var(--op-t-3) var(--op-ease-soft),
               --op-fade-bottom var(--op-t-3) var(--op-ease-soft);
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0,
-    #000 var(--op-fade-top),
-    #000 calc(100% - var(--op-fade-bottom)),
-    transparent 100%
-  );
+  /* El esfumado es del contenido, no de la scrollbar: la franja de la
+     derecha (--op-sb, el ancho de ::-webkit-scrollbar) va sin máscara. Con la
+     máscara entera, al llegar arriba el thumb quedaba tapado y recién
+     aparecía cuando el fade terminaba de retirarse. (El arreglo b1a6399 de
+     Onyx; el base.css de Opal todavía no lo trae.) */
+  --op-sb: 10px;
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--op-fade-top),
+      #000 calc(100% - var(--op-fade-bottom)),
+      transparent 100%
+    ),
+    linear-gradient(#000, #000);
+  mask-size: calc(100% - var(--op-sb)) 100%, var(--op-sb) 100%;
+  mask-position: left top, right top;
+  mask-repeat: no-repeat;
 }
 /* Pegado arriba: no esfumamos arriba. Pegado abajo: no esfumamos abajo. */
 .op-scroll.is-top    { --op-fade-top: 0px; }

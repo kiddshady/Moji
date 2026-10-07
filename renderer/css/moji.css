@@ -414,7 +414,11 @@ kbd {
 
 /* ── Ajustes ──────────────────────────────────────────────────────────────── */
 
-#preferences { overflow-y: auto; padding: 5px 20px 18px; }
+/* El scroll de Opal: arriba, contra la titlebar (que no tiene línea), se
+   esfuma cuando hay algo recortado; abajo corta limpio contra el borde de la
+   ventana. El padding de arriba es el del fade, así en reposo no come el
+   título. */
+#preferences { --op-fade: 14px; overflow-y: auto; padding: var(--op-fade) 20px 18px; }
 .preferences-head { display: flex; align-items: center; gap: 7px; margin-bottom: 17px; }
 .preferences-head h1 { font-size: 18px; font-weight: 500; letter-spacing: -.5px; }
 
