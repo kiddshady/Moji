@@ -1,31 +1,68 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    MOJI — el panel
-   Lo propio de la app, encima de Onyx (tokens, base, motion, controls,
+   Lo propio de la app, encima de Opal (tokens, base, motion, controls,
    overlays). Una ventana chica de 416 × 536: titlebar, y debajo, en la misma
    celda, el panel o Ajustes.
+
+   Moji no usa el shell de Opal (rail, statusbar, router): es un panel. Y en
+   vez de la niebla de shell.css, su sustrato es el escritorio de verdad: la
+   ventana lleva el material acrílico de Windows 11 (main.cjs), que pinta
+   detrás lo que haya, desenfocado. La página es translúcida encima.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* base.css pinta el html opaco; acá tiene que dejar ver el acrílico. */
+html { background: transparent; }
+
+/* ── La escalera de texto, para el vidrio ─────────────────────────────────────
+   La de Opal está calculada contra un fondo opaco de 14,5 %. Moji tiene el
+   escritorio detrás, y el peor caso es abrirlo sobre un documento blanco: el
+   acrílico oscuro ahí queda en un gris de 148, el velo de .5 lo baja a 79, y
+   una tarjeta de Ajustes (con su hoja --op-s2) sube a 89. Para que lo chico
+   se lea con el 4,5:1 que Opal le pide al texto, --op-text-3 tiene que ir a
+   86 % (en Opal, 63 %), y la escalera entera sube con él para no invertirse.
+   --op-text-4 queda para lo que no informa (placeholder, apagado) con 3:1.
+   El costo: sobre un fondo oscuro, la distancia entre el texto principal y
+   el tenue es más corta que en Opal. test/vidrio.test.mjs hace la cuenta. */
+:root {
+  --op-text:   oklch(95% calc(.0046 * var(--op-tint)) var(--op-hue));
+  --op-text-2: oklch(90.5% calc(.0116 * var(--op-tint)) var(--op-hue));
+  --op-text-3: oklch(86% calc(.0138 * var(--op-tint)) var(--op-hue));
+  --op-text-4: oklch(70% calc(.0142 * var(--op-tint)) var(--op-hue));
+}
+
 body {
+  /* Cuánto de --op-bg va encima del acrílico. Es LA perilla del vidrio de
+     Moji: más bajo, más se ve el escritorio; más alto, más sólido. Con .5 se
+     ve bastante de lo de atrás; el precio es la escalera de texto de arriba.
+     Si la cambiás, corré npm test: test/vidrio.test.mjs vuelve a hacer la
+     cuenta del peor caso. */
+  --moji-velo: .5;
+
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   grid-template-columns: minmax(0, 1fr);
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px var(--ox-line-2);
-  border-radius: 10px;
-  background: var(--ox-bg);
-  --ox-surface: var(--ox-bg);
+  /* El canto de la ventana junta luz arriba, como toda hoja de Opal. */
+  box-shadow: inset 0 1px 0 var(--op-edge-lit), inset 0 0 0 1px var(--op-line-2);
+  /* El mismo radio con que Windows 11 redondea la ventana: con uno mayor, en
+     las puntas quedaba acrílico sin velo. */
+  border-radius: 8px;
+  /* El grano de shell.css: sin él el desenfoque queda plástico. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.038'/%3E%3C/svg%3E"),
+    color-mix(in srgb, var(--op-bg) calc(var(--moji-velo) * 100%), transparent);
 }
 
 button, input { -webkit-app-region: no-drag; }
 button { cursor: pointer; }
 button:disabled { cursor: default; opacity: .5; }
 button:focus-visible,
-input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ox-ring); }
+input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--op-ring); }
 [hidden] { display: none !important; }
 
-.ox-icon {
+.op-icon {
   width: 16px;
   height: 16px;
   fill: none;
@@ -56,20 +93,20 @@ input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ox-ring);
   font-weight: 600;
   letter-spacing: -.3px;
 }
-.brand > .ox-icon { width: 19px; height: 19px; }
+.brand > .op-icon { width: 19px; height: 19px; }
 
 .icon-button {
   width: 29px;
   height: 29px;
   display: grid;
   place-items: center;
-  color: var(--ox-text-3);
+  color: var(--op-text-3);
   border: 0;
   border-radius: 7px;
   background: transparent;
   transition: var(--tr-color);
 }
-.icon-button:hover { background: var(--ox-s3); color: var(--ox-text); }
+.icon-button:hover { background: var(--op-s3); color: var(--op-text); }
 
 /* ── Panel y Ajustes: misma celda, relevo ─────────────────────────────────────
    La entrada se apaga con .is-settled, declarado antes que la salida para que
@@ -77,12 +114,12 @@ input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ox-ring);
 
 #panel, #preferences {
   grid-area: 2 / 1;
-  animation: content-in var(--ox-t-2) var(--ox-ease) both;
+  animation: content-in var(--op-t-2) var(--op-ease) both;
 }
 #panel.is-after, #preferences.is-after { animation-delay: 80ms; }
 #panel.is-settled, #preferences.is-settled { animation: none; }
 #panel[data-state=closing], #preferences[data-state=closing] {
-  animation: content-out 160ms var(--ox-ease-both) both;
+  animation: content-out 160ms var(--op-ease-both) both;
   pointer-events: none;
 }
 
@@ -90,46 +127,49 @@ input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ox-ring);
 
 /* ── Pestañas ─────────────────────────────────────────────────────────────── */
 
+/* Botones flotantes: cada pestaña es su propia hoja, separada de las otras,
+   y la elegida sube. La elevación dice cuál está activa (no hace falta un
+   subrayado): más luz, el canto encendido con el acento y una sombra más
+   larga. Van alineadas con la búsqueda (18 px a los lados). */
 #tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 3px;
-  height: 61px;
+  gap: 8px;
   flex-shrink: 0;
-  padding: 0 15px;
-  box-shadow: inset 0 -1px var(--ox-line);
+  padding: 8px 18px 0;
 }
 .tab {
-  position: relative;
+  height: 54px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   border: 0;
-  border-radius: 8px 8px 0 0;
-  background: none;
-  color: var(--ox-text-3);
-  font-size: var(--ox-fs-11);
-  transition: var(--tr-color);
+  border-radius: var(--op-r-lg);
+  background: var(--op-s1);
+  box-shadow: var(--op-sheet), var(--op-e1);
+  color: var(--op-text-3);
+  font-size: var(--op-fs-11);
+  transition: var(--tr-color), transform var(--op-t-2) var(--op-ease);
 }
-.tab > .ox-icon { width: 19px; height: 19px; }
-.tab:hover { color: var(--ox-text); background: var(--ox-wash-1); }
-.tab[aria-selected=true] { color: var(--ox-text); background: linear-gradient(0deg, var(--ox-wash-1), transparent); }
-.tab::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 29px;
-  right: 29px;
-  height: 2px;
-  border-radius: 3px;
-  background: var(--ox-accent);
-  opacity: 0;
-  transform: scaleX(.4);
-  transition: opacity var(--ox-t-2) var(--ox-ease-soft), transform var(--ox-t-2) var(--ox-ease);
+.tab > .op-icon { width: 19px; height: 19px; }
+.tab:hover {
+  background: var(--op-s2);
+  box-shadow: inset 0 1px 0 var(--op-edge-lit), inset 0 0 0 1px var(--op-line-2), var(--op-e2);
+  color: var(--op-text);
+  transform: translateY(-1px);
 }
-.tab[aria-selected=true]::after { opacity: 1; transform: scaleX(1); }
+.tab[aria-selected=true] {
+  background: var(--op-s3);
+  box-shadow: inset 0 1px 0 var(--op-edge-lit), inset 0 0 0 1px var(--op-rim), var(--op-e2);
+  color: var(--op-text);
+  transform: translateY(-1px);
+}
+.tab:active { transform: scale(.97); transition-duration: var(--op-t-1); }
+/* La sombra de la hoja le ganaba al anillo genérico de arriba (button:focus-visible):
+   con clase doble, el foco del teclado se ve también en la elegida. */
+.tab.tab:focus-visible { box-shadow: inset 0 0 0 2px var(--op-ring), var(--op-e2); }
 
 /* ── Búsqueda ─────────────────────────────────────────────────────────────── */
 
@@ -139,15 +179,18 @@ input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ox-ring);
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 16px 18px 0;
+  margin: 14px 18px 0;
   padding: 0 11px;
   border-radius: 9px;
-  background: var(--ox-s2);
-  box-shadow: inset 0 0 0 1px var(--ox-line);
-  color: var(--ox-text-3);
-  transition: box-shadow var(--ox-t-2) var(--ox-ease-soft);
+  /* Un campo de Opal es un pozo de sombra, no una hoja: hunde sobre la niebla
+     y, con foco, se hunde más (como .op-input). */
+  background: var(--op-sunken);
+  box-shadow: inset 0 0 0 1px var(--op-line);
+  color: var(--op-text-3);
+  transition: box-shadow var(--op-t-2) var(--op-ease-soft), background-color var(--op-t-2) var(--op-ease-soft);
 }
-.search-wrap:focus-within { box-shadow: inset 0 0 0 1px var(--ox-line-3); }
+.search-wrap:hover { box-shadow: inset 0 0 0 1px var(--op-line-2); }
+.search-wrap:focus-within { background: var(--op-sunken-2); box-shadow: inset 0 0 0 1px var(--op-line-3); }
 #search {
   width: 100%;
   min-width: 0;
@@ -155,18 +198,18 @@ input:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ox-ring);
   border: 0;
   box-shadow: none !important;
   background: none;
-  color: var(--ox-text);
-  font: var(--ox-fs-12) var(--ox-font);
+  color: var(--op-text);
+  font: var(--op-fs-12) var(--op-font);
   outline: 0;
 }
-#search::placeholder { color: var(--ox-text-4); }
+#search::placeholder { color: var(--op-text-4); }
 #search::-webkit-search-cancel-button { display: none; }
 kbd {
   padding: 1px 5px;
   border-radius: 4px;
-  box-shadow: var(--ox-hairline);
-  color: var(--ox-text-4);
-  font: 10px var(--ox-mono);
+  box-shadow: var(--op-hairline);
+  color: var(--op-text-3);
+  font: 10px var(--op-mono);
 }
 
 /* La X de la búsqueda y el / comparten lugar y se relevan con un fundido; el
@@ -174,7 +217,7 @@ kbd {
 .search-end { display: grid; place-items: center; flex-shrink: 0; }
 .search-end > * {
   grid-area: 1 / 1;
-  transition: var(--tr-color), opacity var(--ox-t-1) var(--ox-ease-soft), visibility var(--ox-t-1);
+  transition: var(--tr-color), opacity var(--op-t-1) var(--op-ease-soft), visibility var(--op-t-1);
 }
 .search-end > .is-off,
 .tone-control.is-off { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -186,7 +229,7 @@ kbd {
    con las @property de base.css. */
 
 .categories {
-  --ox-fade: 22px;
+  --op-fade: 22px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -196,14 +239,14 @@ kbd {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  --ox-fade-left: var(--ox-fade);
-  --ox-fade-right: var(--ox-fade);
-  transition: --ox-fade-left var(--ox-t-3) var(--ox-ease-soft), --ox-fade-right var(--ox-t-3) var(--ox-ease-soft);
-  mask-image: linear-gradient(to right, transparent 0, #000 var(--ox-fade-left), #000 calc(100% - var(--ox-fade-right)), transparent 100%);
+  --op-fade-left: var(--op-fade);
+  --op-fade-right: var(--op-fade);
+  transition: --op-fade-left var(--op-t-3) var(--op-ease-soft), --op-fade-right var(--op-t-3) var(--op-ease-soft);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--op-fade-left), #000 calc(100% - var(--op-fade-right)), transparent 100%);
 }
 .categories::-webkit-scrollbar { display: none; }
-.categories.is-start { --ox-fade-left: 0px; }
-.categories.is-end { --ox-fade-right: 0px; }
+.categories.is-start { --op-fade-left: 0px; }
+.categories.is-end { --op-fade-right: 0px; }
 .categories.is-start.is-end { mask-image: none; }
 
 .category {
@@ -212,13 +255,13 @@ kbd {
   border: 0;
   border-radius: 6px;
   background: none;
-  color: var(--ox-text-3);
-  font-size: var(--ox-fs-11);
+  color: var(--op-text-3);
+  font-size: var(--op-fs-11);
   white-space: nowrap;
   transition: var(--tr-color);
 }
-.category:hover { background: var(--ox-s2); color: var(--ox-text); }
-.category[aria-pressed=true] { background: var(--ox-s3); color: var(--ox-text); }
+.category:hover { background: var(--op-s2); color: var(--op-text); }
+.category[aria-pressed=true] { background: var(--op-s3); color: var(--op-text); }
 
 /* ── Encabezado de la grilla ──────────────────────────────────────────────── */
 
@@ -229,37 +272,37 @@ kbd {
   align-items: center;
   height: 15px;
   margin: 9px 22px 4px;
-  color: var(--ox-text-3);
-  font-size: var(--ox-fs-11);
+  color: var(--op-text-3);
+  font-size: var(--op-fs-11);
 }
-#result-count { color: var(--ox-text-4); font: var(--ox-fs-10) var(--ox-mono); }
+#result-count { color: var(--op-text-3); font: var(--op-fs-10) var(--op-mono); }
 
 /* ── La grilla ────────────────────────────────────────────────────────────────
-   El scroll de Onyx (.ox-scroll + scrollFade): arriba se esfuma solo cuando
+   El scroll de Opal (.op-scroll + scrollFade): arriba se esfuma solo cuando
    hay algo recortado; abajo corta limpio contra la línea del pie. La tanda
    vieja y la nueva comparten celda durante el relevo (mount, en app.js). */
 
 .results {
-  --ox-fade: 14px;
-  --ox-sb: 7px;   /* la scrollbar de acá es más angosta: la franja sin esfumar también */
+  --op-fade: 14px;
+  --op-sb: 7px;   /* la scrollbar de acá es más angosta: la franja sin esfumar también */
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
-  padding: var(--ox-fade) 17px 15px;
+  padding: var(--op-fade) 17px 15px;
   scrollbar-gutter: stable;
 }
 .results > * { grid-area: 1 / 1; }
 .results::-webkit-scrollbar { width: 7px; }
-.results::-webkit-scrollbar-thumb { background: var(--ox-s4); border: 0; border-radius: 8px; }
+.results::-webkit-scrollbar-thumb { background: var(--op-s4); border: 0; border-radius: 8px; }
 ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 
-.result-set { animation: content-in var(--ox-t-2) var(--ox-ease) both; }
+.result-set { animation: content-in var(--op-t-2) var(--op-ease) both; }
 .result-set.is-after { animation-delay: 80ms; }
 .result-set.is-settled { animation: none; }
-.result-set[data-state=closing] { animation: content-out 160ms var(--ox-ease-both) both; pointer-events: none; }
+.result-set[data-state=closing] { animation: content-out 160ms var(--op-ease-both) both; pointer-events: none; }
 
 .grid {
   display: grid;
@@ -279,15 +322,15 @@ kbd {
   background: transparent;
   content-visibility: auto;
   contain-intrinsic-size: auto 42px;
-  transition: var(--tr-color), transform var(--ox-t-1) var(--ox-ease-soft);
+  transition: var(--tr-color), transform var(--op-t-1) var(--op-ease-soft);
 }
-.character:hover { background: var(--ox-s3); transform: translateY(-1px); }
+.character:hover { background: var(--op-s3); transform: translateY(-1px); }
 .character:active { transform: scale(.91); }
 .glyph { font: 27px/1.2 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; pointer-events: none; }
 
 .grid.kaomoji { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
-.kaomoji .character { height: 51px; background: var(--ox-s1); box-shadow: var(--ox-hairline); }
-.kaomoji .character:hover { background: var(--ox-s3); }
+.kaomoji .character { height: 51px; background: var(--op-s1); box-shadow: var(--op-hairline); }
+.kaomoji .character:hover { background: var(--op-s3); }
 .kaomoji .glyph { font: 13px/1.4 'Segoe UI', 'Yu Gothic UI', sans-serif; }
 .symbol .glyph { font: 24px/1.2 'Segoe UI Symbol', 'Cambria Math', sans-serif; }
 .mixed .character[data-kind=kaomoji] { grid-column: span 3; }
@@ -298,8 +341,8 @@ kbd {
 .group-title {
   grid-column: 1 / -1;
   margin: 14px 5px 4px;
-  color: var(--ox-text-3);
-  font-size: var(--ox-fs-11);
+  color: var(--op-text-3);
+  font-size: var(--op-fs-11);
   font-weight: 500;
 }
 .group-title:first-child { margin-top: 2px; }
@@ -312,11 +355,11 @@ kbd {
   gap: 12px;
   height: 160px;
   text-align: center;
-  color: var(--ox-text-3);
-  font-size: var(--ox-fs-12);
+  color: var(--op-text-3);
+  font-size: var(--op-fs-12);
 }
-.empty .ox-icon { width: 32px; height: 32px; color: var(--ox-text-4); }
-.empty small { color: var(--ox-text-4); font-size: var(--ox-fs-11); }
+.empty .op-icon { width: 32px; height: 32px; color: var(--op-text-4); }
+.empty small { color: var(--op-text-3); font-size: var(--op-fs-11); }
 
 /* ── El pie: vista previa y tono ─────────────────────────────────────────── */
 
@@ -327,8 +370,8 @@ kbd {
   align-items: center;
   gap: 11px;
   padding: 0 18px;
-  background: var(--ox-s1);
-  box-shadow: inset 0 1px var(--ox-line);
+  background: var(--op-s1);
+  box-shadow: inset 0 1px var(--op-line);
 }
 .preview-char {
   width: 34px;
@@ -336,16 +379,16 @@ kbd {
   text-align: center;
   font: 29px 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 }
-.preview-char.kao-preview { width: 75px; font-size: var(--ox-fs-11); }
+.preview-char.kao-preview { width: 75px; font-size: var(--op-fs-11); }
 .preview-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 #preview-label {
   min-height: 1lh;
-  font-size: var(--ox-fs-12);
+  font-size: var(--op-fs-12);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#preview-hint { color: var(--ox-text-4); font-size: var(--ox-fs-10); }
+#preview-hint { color: var(--op-text-3); font-size: var(--op-fs-10); }
 
 .tone-control {
   width: 30px;
@@ -354,9 +397,9 @@ kbd {
   place-items: center;
   border: 0;
   border-radius: 8px;
-  background: var(--ox-s2);
-  box-shadow: var(--ox-hairline);
-  transition: var(--tr-color), opacity var(--ox-t-1) var(--ox-ease-soft), visibility var(--ox-t-1);
+  background: var(--op-s2);
+  box-shadow: var(--op-sheet);
+  transition: var(--tr-color), opacity var(--op-t-1) var(--op-ease-soft), visibility var(--op-t-1);
 }
 .tone-dot {
   width: 15px;
@@ -364,10 +407,10 @@ kbd {
   border-radius: 50%;
   background: #f4c542;
   box-shadow: inset 0 0 0 1px #ffffff20;
-  transition: background-color var(--ox-t-2) var(--ox-ease-soft);
+  transition: background-color var(--op-t-2) var(--op-ease-soft);
 }
 /* En el menú de tonos, el puntito es el mismo de este botón. */
-.ox-menuitem__dot { width: 10px; height: 10px; margin: 0 2px; border-radius: 50%; box-shadow: inset 0 0 0 1px #ffffff20; }
+.op-menuitem__dot { width: 10px; height: 10px; margin: 0 2px; flex: 0 0 auto; border-radius: 50%; box-shadow: inset 0 0 0 1px #ffffff20; }
 
 /* ── Ajustes ──────────────────────────────────────────────────────────────── */
 
@@ -375,27 +418,30 @@ kbd {
 .preferences-head { display: flex; align-items: center; gap: 7px; margin-bottom: 17px; }
 .preferences-head h1 { font-size: 18px; font-weight: 500; letter-spacing: -.5px; }
 
-.setting-card { margin-bottom: 12px; padding: 14px; border-radius: 10px; background: var(--ox-s1); }
-.setting-card label { color: var(--ox-text); font-size: var(--ox-fs-12); }
-.setting-card p { margin: 5px 0 9px; color: var(--ox-text-3); font-size: var(--ox-fs-11); }
+.setting-card { margin-bottom: 12px; padding: 14px; border-radius: 10px; background: var(--op-s2); box-shadow: var(--op-sheet); }
+.setting-card label { color: var(--op-text); font-size: var(--op-fs-12); }
+.setting-card p { margin: 5px 0 9px; color: var(--op-text-3); font-size: var(--op-fs-11); }
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .setting-row p { margin-bottom: 0; }
 .setting-row > div { min-width: 0; }
-.setting-row > .ox-btn { flex-shrink: 0; }
+.setting-row > .op-btn { flex-shrink: 0; }
 
 #shortcut {
   width: 100%;
   height: 35px;
   border: 0;
   border-radius: 7px;
-  background: var(--ox-s3);
-  color: var(--ox-text);
+  background: var(--op-sunken);
+  box-shadow: inset 0 0 0 1px var(--op-line);
+  color: var(--op-text);
   text-align: center;
-  font: var(--ox-fs-12) var(--ox-mono);
+  font: var(--op-fs-12) var(--op-mono);
   cursor: pointer;
-  transition: var(--tr-color);
+  transition: var(--tr-color), box-shadow var(--op-t-2) var(--op-ease-soft);
 }
-#shortcut-status { display: block; min-height: 1lh; margin-top: 6px; color: var(--ox-text-3); font-size: var(--ox-fs-11); }
+#shortcut:hover { box-shadow: inset 0 0 0 1px var(--op-line-2); }
+#shortcut:focus { background: var(--op-sunken-2); }
+#shortcut-status { display: block; min-height: 1lh; margin-top: 6px; color: var(--op-text-3); font-size: var(--op-fs-11); }
 
 .switch {
   width: 37px;
@@ -403,33 +449,33 @@ kbd {
   padding: 3px;
   border: 0;
   border-radius: 20px;
-  background: var(--ox-s4);
-  transition: background-color var(--ox-t-2) var(--ox-ease-soft), box-shadow var(--ox-t-1) var(--ox-ease-soft);
+  background: var(--op-s4);
+  transition: background-color var(--op-t-2) var(--op-ease-soft), box-shadow var(--op-t-1) var(--op-ease-soft);
 }
 .switch span {
   display: block;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--ox-text-3);
-  transition: transform var(--ox-t-2) var(--ox-ease), background-color var(--ox-t-2) var(--ox-ease-soft);
+  background: var(--op-text-3);
+  transition: transform var(--op-t-2) var(--op-ease), background-color var(--op-t-2) var(--op-ease-soft);
 }
-.switch[aria-checked=true] { background: var(--ox-accent); }
-.switch[aria-checked=true] span { transform: translateX(15px); background: var(--ox-bg); }
+.switch[aria-checked=true] { background: var(--op-accent); }
+.switch[aria-checked=true] span { transform: translateX(15px); background: var(--op-bg); }
 
-/* Botones de Ajustes: los de Onyx. El de actualizaciones se apaga con un
+/* Botones de Ajustes: los de Opal. El de actualizaciones se apaga con un
    fundido mientras no hay nada que hacer (código, portable, bajando). */
-.ox-btn { cursor: pointer; }
+.op-btn { cursor: pointer; }
 #update-action {
-  transition: var(--tr-color), transform var(--ox-t-1) var(--ox-ease-soft), opacity var(--ox-t-1) var(--ox-ease-soft), visibility var(--ox-t-1);
+  transition: var(--tr-color), transform var(--op-t-1) var(--op-ease-soft), opacity var(--op-t-1) var(--op-ease-soft), visibility var(--op-t-1);
 }
 #update-action.is-off { opacity: 0; visibility: hidden; pointer-events: none; }
 
-.about { margin-top: 17px; text-align: center; color: var(--ox-text-3); font-size: var(--ox-fs-12); }
-.about > .ox-icon { display: inline-block; vertical-align: middle; margin-right: 6px; }
+.about { margin-top: 17px; text-align: center; color: var(--op-text-3); font-size: var(--op-fs-12); }
+.about > .op-icon { display: inline-block; vertical-align: middle; margin-right: 6px; }
 .about > span { display: inline-block; }
-.about small { margin-left: 5px; color: var(--ox-text-4); font: var(--ox-fs-10) var(--ox-mono); }
-.about p { margin: 7px 7px 12px; font-size: var(--ox-fs-11); line-height: 1.7; }
+.about small { margin-left: 5px; color: var(--op-text-3); font: var(--op-fs-10) var(--op-mono); }
+.about p { margin: 7px 7px 12px; font-size: var(--op-fs-11); line-height: 1.7; }
 
 /* ── El aviso ─────────────────────────────────────────────────────────────── */
 
@@ -441,16 +487,19 @@ kbd {
   z-index: 99;
   padding: 12px 14px;
   border-radius: 9px;
-  background: var(--ox-s4);
-  box-shadow: var(--ox-e3), var(--ox-hairline);
-  color: var(--ox-text);
-  font-size: var(--ox-fs-12);
+  /* Flota sobre la grilla: es una hoja de vidrio de verdad, como un toast.
+     El blur no se anima; entra y sale por opacity y transform. */
+  background: var(--op-s3);
+  backdrop-filter: var(--op-glass);
+  box-shadow: var(--op-sheet), var(--op-e3);
+  color: var(--op-text);
+  font-size: var(--op-fs-12);
   line-height: 1.5;
-  animation: content-in var(--ox-t-2) var(--ox-ease) both;
+  animation: content-in var(--op-t-2) var(--op-ease) both;
 }
 #notice.is-settled { animation: none; }
-#notice[data-state=closing] { animation: content-out 140ms var(--ox-ease-in) both; }
-#notice.error { box-shadow: var(--ox-e3), inset 0 0 0 1px var(--ox-danger-dim); }
+#notice[data-state=closing] { animation: content-out 140ms var(--op-ease-in) both; }
+#notice.error { box-shadow: inset 0 0 0 1px var(--op-danger-dim), var(--op-e3); }
 .notice-text { display: block; }
 
 /* ── Movimiento ───────────────────────────────────────────────────────────── */

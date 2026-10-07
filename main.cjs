@@ -13,12 +13,20 @@
    Ajustes.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, screen, clipboard } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, nativeTheme, screen, clipboard } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-/** El fondo de la ventana: el hex de --ox-bg (tokens.test.mjs lo compara). */
-const BG = '#0a0b0d';
+/** El fondo de --op-bg en hex (tokens.test.mjs lo compara con el del splash). */
+const BG = '#0a0a0a';
+
+/* La ventana es de vidrio de verdad: Windows 11 pinta detrás el escritorio
+   desenfocado (el material acrílico) y la página encima es translúcida, con
+   un velo de --op-bg (moji.css). Por eso el backgroundColor es transparente:
+   un color opaco taparía el acrílico. El tema va forzado a oscuro, porque el
+   acrílico sigue al de Windows y en modo claro sería blanco. */
+const GLASS = '#00000000';
+nativeTheme.themeSource = 'dark';
 
 app.setName('Moji');
 /* Solo para test/package-smoke.cjs: un perfil aparte, así el .exe de prueba no
@@ -33,7 +41,7 @@ const updater = require('./src/updater.cjs');
 
 /* La versión sale del package.json y no de app.getVersion(): corriendo un
    script de prueba con `electron test/…`, Electron toma su propia versión
-   (40.x) y Ajustes la mostraba como si fuera la de Moji. */
+   (44.x) y Ajustes la mostraba como si fuera la de Moji. */
 const VERSION = require('./package.json').version;
 
 const WIDTH = 416;
@@ -101,7 +109,7 @@ async function show(capture = true) {
   const x = Math.round(Math.min(Math.max(cursor.x - 80, area.x + 8), area.x + area.width - WIDTH - 8));
   const y = Math.round(Math.min(Math.max(cursor.y + 16, area.y + 8), area.y + area.height - HEIGHT - 8));
 
-  /* El calentamiento del DWM de Onyx: el primer cuadro visible pasa fuera de
+  /* El calentamiento del DWM de Opal: el primer cuadro visible pasa fuera de
      pantalla. Y el panel se rearma acá, todavía afuera: si se avisara ya en
      su lugar, se vería un cuadro con lo de la vez anterior y después la
      grilla nueva (parpadeo). */
@@ -217,7 +225,7 @@ function registerIPC() {
     busy = true;
     try {
       if (copyOnly) {
-        clipboard.writeText(item.value);
+        await clipboard.writeText(item.value);   // asíncrono desde Electron 44
       } else {
         /* El panel queda abierto: el foco va a la app un instante y vuelve,
            así se pueden elegir varios seguidos. Esc (o hacer clic afuera) lo
@@ -284,7 +292,8 @@ async function start() {
     show: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    backgroundColor: BG,
+    backgroundColor: GLASS,
+    backgroundMaterial: 'acrylic',
     autoHideMenuBar: true,
     icon: nativeImage.createFromBuffer(asset('icon.png')),
     webPreferences: {
@@ -300,6 +309,13 @@ async function start() {
   win.webContents.on('will-navigate', (e) => e.preventDefault());
   win.webContents.session.setPermissionRequestHandler((_wc, _p, cb) => cb(false));
   win.on('blur', () => { if (!opening && !busy) hide(); });
+  /* Al insertar, Moji le da el foco a la otra app un instante (y mientras
+     abre, todavía no lo tiene): sin esto, Windows cambiaría el acrílico por
+     un gris sólido y volvería, un parpadeo en cada clic. Si en cambio pierde
+     el foco porque se cierra (clic afuera), no hace falta: se esconde. */
+  win.hookWindowMessage(native.WM_NCACTIVATE, (wParam) => {
+    if (wParam.readUInt32LE(0) === 0 && (busy || opening)) setImmediate(() => native.lookActive(hwnd()));
+  });
   win.on('close', (e) => {
     if (quitting) return;
     e.preventDefault();

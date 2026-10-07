@@ -1,6 +1,6 @@
 # Moji
 
-Panel de emojis, kaomojis y símbolos para Windows. Construido a partir de una copia independiente de Onyx.
+Panel de emojis, kaomojis y símbolos para Windows. Nació de una copia independiente de Onyx y hoy lleva la piel de Opal: hojas de vidrio sobre niebla.
 
 *Moji* es «carácter» en japonés: emoji es 絵文字 (carácter-imagen) y kaomoji es 顔文字 (carácter-cara).
 
@@ -59,16 +59,16 @@ npm run test:package
 
 `npm test` comprueba tokens, almacenamiento, búsqueda (incluidos los ejemplos que sugieren los buscadores), catálogo, variantes y codificación UTF-16. `npm run smoke` prueba el renderer real, menús, íconos de bandeja, atajo global e inserción Win32 en una ventana de prueba; usa una carpeta temporal y su propio atajo, así que corre aunque tengas Moji abierto (y falla si no llega al final). `npm run test:package` abre `dist/Moji.exe` como proceso independiente, con su propio perfil y su propio atajo (corre aunque tengas Moji abierto), verifica el atajo, la inserción de un emoji compuesto, el portapapeles intacto y la persistencia tras reiniciar. Las capturas quedan en `.shots/`.
 
-`npm run icons` hornea `assets/icon.ico`, `assets/icon.png` y `assets/tray-{16,20,24,32}.png` desde `tools/icons.mjs`: una carita rellena amarilla, con volumen, sobre la baldosa del color de `tokens.css`. Hasta 24 px usa una versión ajustada al píxel para que se lea en la bandeja. La hoja de control, con cada tamaño a 1:1 y ampliado, queda en `.shots/icons.png`.
+`npm run icons` hornea `assets/icon.ico`, `assets/icon.png` y `assets/tray-{16,20,24,32}.png` desde `tools/icons.mjs`: una carita rellena amarilla, con volumen, sola sobre transparente: a diferencia del resto de las apps, Moji no lleva baldosa. Hasta 24 px usa una versión ajustada al píxel para que se lea en la bandeja. La hoja de control, con cada tamaño a 1:1 y ampliado, queda en `.shots/icons.png`.
 
 `npm run catalog` reconstruye el catálogo desde Emojibase (datos CLDR/Unicode) más la selección local de kaomojis y símbolos. Los kaomojis llevan un nombre propio (es lo que dicen el tooltip y la vista previa). Los ids no se tocan nunca: Más usados guarda los usos por id. El generador es una herramienta de desarrollo; el programa no necesita la dependencia de datos completa en ejecución.
 
 ## Implementación y límites
 
-Electron 40, Koffi para Win32 y CSS/controles de Onyx. El renderer tiene sandbox y contextIsolation; solo puede insertar IDs del catálogo validado. No hay navegación externa ni solicitudes de permisos. La ventana se prepara fuera de pantalla antes de mostrarse siguiendo el método anti-flash de Onyx.
+Electron 44, Koffi para Win32 y CSS/controles de Opal (sin su shell). En vez de la niebla de Opal, el fondo es el material acrílico de Windows 11: el escritorio desenfocado detrás, con un velo de `--moji-velo` encima (en `moji.css`). Windows apaga el acrílico cuando la ventana pierde el foco, y Moji lo pierde un instante en cada inserción; para que no parpadee, mientras inserta se le devuelve el aspecto activo con `WM_NCACTIVATE` (`src/native.cjs`). El renderer tiene sandbox y contextIsolation; solo puede insertar IDs del catálogo validado. No hay navegación externa ni solicitudes de permisos. La ventana se prepara fuera de pantalla antes de mostrarse siguiendo el método anti-flash de Onyx y Opal.
 
 Antes de abrir se conserva el HWND de la ventana activa; al seleccionar se restaura el foco y se envían unidades UTF-16 mediante SendInput, incluidos los pares sustitutos y secuencias ZWJ. No se presupone compatibilidad con todos los controles: algunas apps o ventanas elevadas pueden rechazar entrada sintetizada. Moji muestra el error y permite usar Copiar. El destino más confiable se obtiene abriendo con el atajo desde el campo de texto.
 
 Fuentes técnicas: [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput), [SetForegroundWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow), [atajos globales de Electron](https://www.electronjs.org/docs/latest/tutorial/keyboard-shortcuts), [datasets de Emojibase](https://emojibase.dev/docs/datasets/).
 
-Los datos de Emojibase conservan su licencia en `assets/Emojibase-LICENSE.txt`; las fuentes de Onyx incluyen sus licencias en `renderer/fonts/`.
+Los datos de Emojibase conservan su licencia en `assets/Emojibase-LICENSE.txt`; las fuentes de Opal incluyen sus licencias en `renderer/fonts/`.

@@ -12,7 +12,7 @@
 
 import { Icons } from './icons.js';
 import { Tooltip, Menu, Modal } from './overlays.js';
-import { exit, swap, frase, numero, deslizarAncho, scrollFade } from './motion.js';
+import { exit, swap, tick, scrollFade } from './motion.js';
 import { searchItems, variant } from './search.mjs';
 
 Icons.add({
@@ -27,7 +27,7 @@ Icons.add({
   'moji-close': '<path d="m4 4 8 8M4 12l8-8"/>',
   'moji-back': '<path d="m9 3-5 5 5 5M4 8h9"/>',
   'moji-power': '<path d="M8 2.2v5.3M4.5 4.3a5 5 0 1 0 7 0"/>',
-  'moji-settings': '<path d="M3 4h10M3 8h10M3 12h10"/><circle cx="6" cy="4" r="1.5" fill="var(--ox-bg)"/><circle cx="10" cy="8" r="1.5" fill="var(--ox-bg)"/><circle cx="6" cy="12" r="1.5" fill="var(--ox-bg)"/>',
+  'moji-settings': '<path d="M3 4h10M3 8h10M3 12h10"/><circle cx="6" cy="4" r="1.5" fill="var(--op-bg)"/><circle cx="10" cy="8" r="1.5" fill="var(--op-bg)"/><circle cx="6" cy="12" r="1.5" fill="var(--op-bg)"/>',
 });
 Icons.mount();
 Tooltip.init();
@@ -36,6 +36,33 @@ const $ = (id) => document.getElementById(id);
 const api = window.moji;
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+/* ── Textos que se ponen al día ─────────────────────────────────────────────
+   swap() de Opal releva lo viejo por lo nuevo en la misma celda. Pero si en
+   una frase solo cambian las cifras («Bajando la 0.5.0… 41 %» → «42 %»),
+   relevarla entera la apagaría y la prendería en cada paso: ahí se reescribe
+   en su lugar y destella (tick). Mientras un relevo está en curso no se toca
+   lo que se va: va como relevo. */
+function frase(el, html) {
+  const live = el.querySelector(':scope > .op-swap__item:not([data-state=closing])');
+  const digits = (h) => h.replace(/\d+/g, '#');
+  const same = live && el.__swap != null && el.__swap !== html && digits(el.__swap) === digits(html)
+    && el.querySelectorAll(':scope > .op-swap__item').length === 1;
+  if (!same) return swap(el, html);
+  live.innerHTML = html;
+  el.__swap = html;   // la memoria de swap(): el próximo relevo compara contra esto
+  tick(el);   // en el contenedor: el ítem asentado tiene animation: none y le ganaría
+  return live;
+}
+
+/** Un número suelto: en su lugar, y destella si cambió. El primero no. */
+function numero(el, n) {
+  const text = String(n);
+  if (el.textContent === text) return;
+  const first = el.textContent === '';
+  el.textContent = text;
+  if (!first) tick(el);
+}
 
 /* ── Constantes ─────────────────────────────────────────────────────────── */
 
@@ -138,7 +165,7 @@ function notice(message, error = false) {
   const shown = !n.hidden && !n.dataset.state;
   const line = n.querySelector(':scope > .notice-text');
   if (shown && line) {
-    swap(line, esc(message), { relevo: true });
+    swap(line, esc(message));
   } else {
     const fresh = document.createElement('span');
     fresh.className = 'notice-text';
@@ -437,7 +464,8 @@ const UPDATE_TEXT = {
 let announced = '';
 
 /* Con la versión lista, el botón pasa a primario: es la única acción que
-   importa en Ajustes. Su rótulo cambia con un relevo y el ancho viaja. */
+   importa en Ajustes. Su rótulo cambia con un relevo y el ancho viaja
+   (swap con size; .op-swap--row lo deja en fila). */
 function renderUpdate(u) {
   state.update = u;
   frase($('update-status'), esc((UPDATE_TEXT[u.state] || UPDATE_TEXT.idle)(u)));
@@ -446,10 +474,10 @@ function renderUpdate(u) {
   const label = ready ? 'Instalar' : u.state === 'error' ? 'Reintentar' : 'Buscar';
   b.classList.toggle('is-off', ['dev', 'portable', 'downloading'].includes(u.state));
   b.disabled = u.state === 'checking';
-  b.classList.toggle('ox-btn--primary', ready);
-  b.classList.toggle('ox-btn--secondary', !ready);
+  b.classList.toggle('op-btn--primary', ready);
+  b.classList.toggle('op-btn--secondary', !ready);
   b.setAttribute('aria-label', ready ? 'Instalar y reiniciar' : u.state === 'error' ? 'Reintentar' : 'Buscar actualizaciones');
-  deslizarAncho(b, () => swap(b, `${Icons.svg(ready ? 'download' : 'retry')}<span>${label}</span>`, { relevo: true }));
+  swap(b, `${Icons.svg(ready ? 'download' : 'retry')}<span>${label}</span>`, { size: true });
 }
 
 $('update-action').onclick = async () => {
@@ -670,7 +698,7 @@ function clearOverlays() {
   Tooltip.hide(true);
   Menu.close(true);
   Modal.close(null);
-  document.querySelectorAll('#ox-layer > [data-state=closing]').forEach((e) => e.remove());
+  document.querySelectorAll('#op-layer > [data-state=closing]').forEach((e) => e.remove());
   clearTimeout(noticeTimer);
   drop($('notice'));
 }

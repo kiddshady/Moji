@@ -126,10 +126,10 @@ app.whenReady().then(async () => {
   // El menú de tonos cae adentro del panel y cambia el tono de la grilla.
   await js('document.getElementById("tone").click()');
   await sleep(250);
-  const rect = await js('(()=>{const r=document.querySelector(".ox-menu").getBoundingClientRect();return {x:r.x,y:r.y,b:r.bottom}})()');
+  const rect = await js('(()=>{const r=document.querySelector(".op-menu").getBoundingClientRect();return {x:r.x,y:r.y,b:r.bottom}})()');
   assert(rect.x >= 0 && rect.y >= 0 && rect.b <= 536);
-  assert.equal(await js('document.querySelectorAll(".ox-menu .ox-menuitem__dot").length'), 6);
-  await js('document.querySelectorAll(".ox-menuitem")[1].click()');
+  assert.equal(await js('document.querySelectorAll(".op-menu .op-menuitem__dot").length'), 6);
+  await js('document.querySelectorAll(".op-menuitem")[1].click()');
   await sleep(250);
   assert.equal(await js(`document.querySelector('[data-id="1F44D"] .glyph').textContent`), '👍🏻');
 
@@ -149,7 +149,7 @@ app.whenReady().then(async () => {
     await sleep(30);
     return BigInt(native.foreground()) === targetHwnd;
   }, 'test target focus');
-  const clip = clipboard.readText();
+  const clip = await clipboard.readText();
 
   // El atajo registrado, disparado con SendInput y no llamando al callback.
   pressChord();
@@ -159,7 +159,7 @@ app.whenReady().then(async () => {
   await search('pulgar arriba');
   await js(`document.querySelector('[data-id="1F44D"]').click()`);
   await until(async () => (await typed()) === '👍🏻', 'native emoji inserted');
-  assert.equal(clipboard.readText(), clip, 'insertion leaves clipboard unchanged');
+  assert.equal(await clipboard.readText(), clip, 'insertion leaves clipboard unchanged');
   await until(() => moji.getState().usage.some((i) => i.id === '1F44D'), 'usage saved');
   assert.equal(moji.getState().usage.find((i) => i.id === '1F44D').count, 1);
   await until(() => win.isVisible() && win.isFocused(), 'panel stays open and focused after insert');
@@ -203,9 +203,9 @@ app.whenReady().then(async () => {
   // Reiniciar más usados: la confirmación entra en el panel y borra el conteo.
   await js('document.getElementById("settings").click();document.getElementById("reset-usage").click()');
   await sleep(350);
-  const modal = await js('(()=>{const r=document.querySelector(".ox-modal").getBoundingClientRect();return {x:r.x,y:r.y,b:r.bottom,r:r.right}})()');
+  const modal = await js('(()=>{const r=document.querySelector(".op-modal").getBoundingClientRect();return {x:r.x,y:r.y,b:r.bottom,r:r.right}})()');
   assert(modal.x >= 0 && modal.y >= 0 && modal.b <= 536 && modal.r <= 416, 'confirmation fits panel');
-  await js('document.querySelector(".ox-modal__foot .ox-btn--primary").click()');
+  await js('document.querySelector(".op-modal__foot .op-btn--primary").click()');
   await sleep(300);
   assert.equal(moji.getState().usage.length, 0);
   await js('document.getElementById("back").click()');

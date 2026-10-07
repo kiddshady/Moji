@@ -7,7 +7,7 @@
   <title>Moji</title>
   <!-- El splash pinta antes de que exista un token: su fondo es el BG de main.cjs. -->
   <style>
-    #boot-splash { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: #0a0b0d; color: #f0f3f7; font: 500 17px 'Segoe UI', sans-serif; }
+    #boot-splash { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: #0a0a0a; color: #f0f3f7; font: 500 17px 'Segoe UI', sans-serif; }
     #boot-splash[data-state=closing] { opacity: 0; transition: opacity 180ms; }
   </style>
   <link rel="stylesheet" href="css/fonts.css">
@@ -43,7 +43,7 @@
     <div id="categories" class="categories is-start is-end" aria-label="Categorías"></div>
 
     <div class="section-label"><span id="section-name">Para empezar</span><span id="result-count"></span></div>
-    <div id="results" class="results ox-scroll ox-scroll--line-bottom" role="tabpanel" aria-label="Caracteres disponibles" tabindex="-1"></div>
+    <div id="results" class="results op-scroll op-scroll--line-bottom" role="tabpanel" aria-label="Caracteres disponibles" tabindex="-1"></div>
 
     <footer class="preview">
       <span id="preview-char" class="preview-char"></span>
@@ -82,7 +82,7 @@
         <label>Actualizaciones</label>
         <p id="update-status" role="status">Se buscan solas al abrir Moji.</p>
       </div>
-      <button id="update-action" class="ox-btn ox-btn--secondary"><i data-icon="retry"></i><span>Buscar</span></button>
+      <button id="update-action" class="op-btn op-btn--secondary op-swap--row"><i data-icon="retry"></i><span>Buscar</span></button>
     </div>
 
     <div class="setting-card setting-row">
@@ -90,18 +90,18 @@
         <label>Más usados</label>
         <p>Ordenados por cantidad de usos.</p>
       </div>
-      <button id="reset-usage" class="ox-btn ox-btn--secondary" aria-label="Reiniciar más usados"><i data-icon="undo"></i><span>Reiniciar</span></button>
+      <button id="reset-usage" class="op-btn op-btn--secondary" aria-label="Reiniciar más usados"><i data-icon="undo"></i><span>Reiniciar</span></button>
     </div>
 
     <div class="about">
       <i data-icon="moji-mark"></i><span>Moji <small id="version"></small></span>
-      <p>Hecho con Onyx.</p>
-      <button id="quit" class="ox-btn ox-btn--secondary"><i data-icon="moji-power"></i><span>Salir de Moji</span></button>
+      <p>Hecho con Opal.</p>
+      <button id="quit" class="op-btn op-btn--secondary"><i data-icon="moji-power"></i><span>Salir de Moji</span></button>
     </div>
   </section>
 
   <div id="notice" role="status" aria-live="polite" hidden></div>
-  <div id="ox-layer"></div>
+  <div id="op-layer"></div>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

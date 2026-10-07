@@ -10,7 +10,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "test": "node test/tokens.test.mjs && node test/store.test.mjs && node test/moji.test.mjs",
+    "test": "node test/tokens.test.mjs && node test/vidrio.test.mjs && node test/store.test.mjs && node test/moji.test.mjs",
     "smoke": "electron test/moji-smoke.cjs",
     "build": "electron-builder --win portable --x64",
     "build:installer": "electron-builder --win nsis --x64 --config.directories.output=installer-dist",
@@ -20,7 +20,7 @@
     "release": "electron-builder --win nsis --x64 --config.directories.output=installer-dist --publish always"
   },
   "devDependencies": {
-    "electron": "40.10.6",
+    "electron": "44.5.1",
     "electron-builder": "^26.15.3",
     "emojibase-data": "17.0.0"
   },

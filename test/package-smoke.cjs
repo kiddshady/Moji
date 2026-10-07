@@ -157,7 +157,7 @@ app.whenReady().then(async () => {
 
   await launch();
   console.log('Portable inició con catálogo y módulo Win32 empaquetados.');
-  const clip = clipboard.readText();
+  const clip = await clipboard.readText();
 
   await chord();
   await js(`document.getElementById('tab-emoji').click()`);
@@ -169,7 +169,7 @@ app.whenReady().then(async () => {
   await chord();
   await js('window.moji.choose("1F469-200D-1F4BB",3)');
   await until(async () => (await typed()) === '👍🏿👩🏽‍💻', 'ZWJ external insertion');
-  assert.equal(clipboard.readText(), clip);
+  assert.equal(await clipboard.readText(), clip);
 
   await chord();
   const screenshot = await rpc('Page.captureScreenshot', { format: 'png' });

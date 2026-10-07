@@ -16,6 +16,7 @@ const send = user.func('uint32_t __stdcall SendInput(uint32_t count, const void 
 const threadOf = user.func('uint32_t __stdcall GetWindowThreadProcessId(uintptr_t hwnd, void *pid)');
 const attach = user.func('bool __stdcall AttachThreadInput(uint32_t from, uint32_t to, bool on)');
 const toTop = user.func('bool __stdcall BringWindowToTop(uintptr_t hwnd)');
+const sendMessage = user.func('intptr_t __stdcall SendMessageW(uintptr_t hwnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)');
 const thisThread = koffi.load('kernel32.dll').func('uint32_t __stdcall GetCurrentThreadId()');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -90,4 +91,14 @@ function reclaim(hwnd) {
   return same(foreground(), hwnd);
 }
 
-module.exports = { foreground, focus, insert, reclaim, events, stride };
+/* El acrílico de Windows 11 se apaga (pasa a un gris sólido) cuando la
+   ventana recibe WM_NCACTIVATE(FALSE), o sea, al perder el foco. Mandarle
+   WM_NCACTIVATE(TRUE) le devuelve el vidrio sin tocar el foco de verdad: las
+   teclas siguen yendo a la app de adelante. Medido en un laboratorio: con
+   FALSE se pone sólida, con TRUE vuelve el escritorio desenfocado. */
+const WM_NCACTIVATE = 0x86;
+function lookActive(hwnd) {
+  sendMessage(hwnd, WM_NCACTIVATE, 1, 0);
+}
+
+module.exports = { foreground, focus, insert, reclaim, events, stride, lookActive, WM_NCACTIVATE };
