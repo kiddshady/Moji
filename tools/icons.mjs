@@ -1,17 +1,19 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    MOJI — el ícono, horneado desde el código
-   Una carita rellena, amarilla como el emoji clásico, sobre la baldosa de Onyx:
-   a sangre, sin borde, esquinas al 19 %. La cara ocupa el 62 % del lienzo (68 %
-   en la bandeja), con un degradé de amarillo a naranja que le da volumen y ojos
-   y sonrisa marrones. Elegida en una hoja de control entre tres variantes (plana,
-   con volumen, rasgos del color de la baldosa), al lado de Atlas, Beacon, Pharos
-   y Tessera.
+   Una carita rellena, amarilla como el emoji clásico, con un degradé de
+   amarillo a naranja que le da volumen y ojos y sonrisa marrones.
+
+   SIN BALDOSA, a propósito. Todas las apps de Fran llevan la baldosa
+   estándar; Moji es la excepción que él pidió (octubre de 2026): el ícono es
+   la carita sola, como un emoji, tanto el de la app como el de la bandeja.
+   Sin una placa que la contenga, la cara es la que llena el lienzo: el disco
+   ocupa el 94 % del lado (los vecinos van a sangre, y un disco más chico se
+   veía perdido a su lado), y en la bandeja, 15 de 16 píxeles. Como no hay
+   fondo del tema, no depende de tokens.css: un retint no lo toca.
 
    Cada tamaño se dibuja a SU tamaño con supermuestreo, no se achica el de 256.
    Hasta 24 px (la bandeja a 100/125/150 %) se usa una versión ajustada al
    píxel: a 16 px los ojos caen en columnas enteras y no se funden en la cara.
-   La baldosa sale de tokens.css, así que un retint.mjs se arrastra con solo
-   volver a correr esto; el amarillo es del emoji, no del tema, y no cambia.
 
    Sin dependencias; los encoders PNG/ICO son los de Mnemus.
    `npm run icons` regenera assets/ y deja la hoja de control en .shots/icons.png.
@@ -22,28 +24,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodePNG } from './png.mjs';
 import { encodeICO } from './ico.mjs';
-import { oklchToHex } from './oklch.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'assets');
 
 /* ── Color ───────────────────────────────────────────────────────────────── */
 
-const css = fs.readFileSync(path.join(ROOT, 'renderer/css/tokens.css'), 'utf8');
-const num = (re, what) => {
-  const m = css.match(re);
-  if (!m) throw new Error(`tokens.css: no encontré ${what}`);
-  return m.slice(1).map(Number);
-};
-const [HUE] = num(/--ox-hue:\s*([\d.]+)/, '--ox-hue');
-const [TINT] = num(/--ox-tint:\s*([\d.]+)/, '--ox-tint');
-const token = (name) => {
-  const [L, C] = num(new RegExp(`--ox-${name}:\\s*oklch\\(([\\d.]+)%\\s+calc\\(([\\d.]+)\\s*\\*\\s*var\\(--ox-tint\\)\\)`), `--ox-${name}`);
-  const hex = oklchToHex(L / 100, C * TINT, HUE);
-  return rgb(hex);
-};
 function rgb(hex) { return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)); }
-const TILE = token('s1');            // el plano del rail y la statusbar
 const FACE_TOP = rgb('#ffdb5e');     // la cara, de arriba…
 const FACE_BOTTOM = rgb('#f5a623');  // …a abajo
 const FEATURES = rgb('#5c3a00');     // ojos y sonrisa
@@ -51,27 +38,27 @@ const FEATURES = rgb('#5c3a00');     // ojos y sonrisa
 /* ── La cara ─────────────────────────────────────────────────────────────── */
 
 /* Grilla 16, cara centrada en 8,8. Ojos: segmentos verticales de punta redonda;
-   sonrisa: una cuadrática con trazo. */
+   sonrisa: una cuadrática con trazo. Es la misma de 'moji-face' en app.js. */
 const FACE = {
   r: 6,
   eyes: [[6, 5.35, 6, 6.45], [10, 5.35, 10, 6.45]], eyeHalf: 0.66,
   smile: [4.9, 8.9, 8, 12.9, 11.1, 8.9], smileHalf: 0.62,   // M4.9 8.9 Q8 12.9 11.1 8.9
 };
+const SPAN = 0.94;   // el diámetro del disco sobre el lado del lienzo
 
 /* La misma cara para la bandeja, en la grilla del lienzo: a 16 px cada unidad es
-   un píxel. El disco (r 5,5) ocupa el 68 % y los ojos van en las columnas 5 y
-   10 enteras, con la sonrisa apoyada en la fila 10. */
+   un píxel. El disco (r 7,5) deja medio píxel de aire de cada lado; los ojos
+   son de dos columnas enteras (4-5 y 10-11) y la sonrisa baja hasta la fila 11. */
 const HINTED = {
-  r: 5.5,
-  eyes: [[5.5, 5.5, 5.5, 6.5], [10.5, 5.5, 10.5, 6.5]], eyeHalf: 0.5,
-  smile: [5.5, 9, 8, 12, 10.5, 9], smileHalf: 0.62,
+  r: 7.5,
+  eyes: [[5, 4.6, 5, 5.9], [11, 4.6, 11, 5.9]], eyeHalf: 0.95,
+  smile: [4.4, 9.1, 8, 13.9, 11.6, 9.1], smileHalf: 0.8,
 };
 
 /* Geometría y escala (grilla de la cara → grilla 16 del lienzo) por tamaño. */
 function glyph(size) {
   if (size <= 24) return prepare(HINTED, 1);
-  const span = size >= 48 ? 0.62 : 0.68;
-  return prepare(FACE, (span * 16) / (2 * FACE.r));
+  return prepare(FACE, (SPAN * 16) / (2 * FACE.r));
 }
 
 function prepare(g, scale) {
@@ -102,15 +89,8 @@ function faceColor(g, x, y) {
   return FACE_TOP.map((c, i) => c + (FACE_BOTTOM[i] - c) * t);
 }
 
-const TILE_R = 0.19;   // radio de la baldosa sobre el lado
-
-/** Baldosa redondeada a sangre sobre [0,1]². */
-function inTile(u, v) {
-  const qx = Math.abs(u - 0.5) - (0.5 - TILE_R);
-  const qy = Math.abs(v - 0.5) - (0.5 - TILE_R);
-  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - TILE_R <= 0;
-}
-
+/* Fuera del disco, transparente: el alfa de cada píxel es la parte que cubre
+   la cara, y el color, el promedio de lo cubierto. */
 function render(size) {
   const g = glyph(size);
   const N = size <= 64 ? 8 : 5;               // submuestras por lado
@@ -118,21 +98,21 @@ function render(size) {
 
   for (let py = 0; py < size; py++) {
     for (let px = 0; px < size; px++) {
-      let tile = 0; const sum = [0, 0, 0];
+      let covered = 0; const sum = [0, 0, 0];
       for (let sy = 0; sy < N; sy++) {
         for (let sx = 0; sx < N; sx++) {
           const u = (px + (sx + 0.5) / N) / size;
           const v = (py + (sy + 0.5) / N) / size;
-          if (!inTile(u, v)) continue;
-          tile++;
-          const color = faceColor(g, (u * 16 - 8) / g.scale + 8, (v * 16 - 8) / g.scale + 8) || TILE;
+          const color = faceColor(g, (u * 16 - 8) / g.scale + 8, (v * 16 - 8) / g.scale + 8);
+          if (!color) continue;
+          covered++;
           for (let c = 0; c < 3; c++) sum[c] += color[c];
         }
       }
-      if (!tile) continue;
+      if (!covered) continue;
       const o = (py * size + px) * 4;
-      for (let c = 0; c < 3; c++) out[o + c] = Math.round(sum[c] / tile);
-      out[o + 3] = Math.round((tile / (N * N)) * 255);
+      for (let c = 0; c < 3; c++) out[o + c] = Math.round(sum[c] / covered);
+      out[o + 3] = Math.round((covered / (N * N)) * 255);
     }
   }
   return out;
@@ -184,7 +164,7 @@ fs.writeFileSync(path.join(ROOT, '.shots/icons.png'), sheet());
 
 const kb = (f) => (fs.statSync(path.join(OUT, f)).size / 1024).toFixed(1);
 const hex = (c) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
-console.log(`baldosa ${hex(TILE)} (hue ${HUE}, tint ${TINT}) · cara ${hex(FACE_TOP)} → ${hex(FACE_BOTTOM)} · rasgos ${hex(FEATURES)}`);
+console.log(`sin baldosa · disco ${Math.round(SPAN * 100)} % · cara ${hex(FACE_TOP)} → ${hex(FACE_BOTTOM)} · rasgos ${hex(FEATURES)}`);
 console.log(`icon.ico  ${kb('icon.ico')} kB  (${ICO_SIZES.join(', ')})`);
 console.log(`icon.png  ${kb('icon.png')} kB`);
 console.log(`tray-*.png  ${TRAY_SIZES.join(', ')}`);
