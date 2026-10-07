@@ -241,6 +241,7 @@ kbd {
 
 .results {
   --ox-fade: 14px;
+  --ox-sb: 7px;   /* la scrollbar de acá es más angosta: la franja sin esfumar también */
   flex: 1;
   min-height: 0;
   overflow-y: auto;
