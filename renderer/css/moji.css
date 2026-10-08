@@ -514,3 +514,13 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
+
+/* ── El tono de lo que flota ─────────────────────────────────────────────────
+   La receta es la de Opal (--op-flota, tokens.css): el menú del tono de piel
+   queda del mismo tono que las tarjetas del panel. Pero en Moji el fondo no es
+   la niebla oscura: es el acrílico con su velo, un gris de ~79 sobre un
+   documento blanco (vidrio.test.mjs). Una base oscura lo dejaba muy por debajo
+   de las .setting-card. Sin base, el menú lleva la misma luz (--op-s2) sobre el
+   mismo panel que ellas: igual por construcción. No se puede medir con
+   capturePage, que no incluye el acrílico del sistema; la cuenta es esta. */
+:root { --op-flota-base: 0%; }
