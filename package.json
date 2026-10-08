@@ -1,7 +1,7 @@
 {
   "name": "moji",
   "productName": "Moji",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Panel de emojis, kaomojis y símbolos para Windows.",
   "main": "main.cjs",
   "author": "Kidd Shady · Umbrovex Systems <umbrovex@proton.me>",
