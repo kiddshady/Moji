@@ -11,7 +11,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { Icons } from './icons.js';
-import { Tooltip, Menu, Modal } from './overlays.js';
+import { Menu, Modal } from './overlays.js';
 import { exit, swap, tick, scrollFade } from './motion.js';
 import { searchItems, variant } from './search.mjs';
 
@@ -30,7 +30,6 @@ Icons.add({
   'moji-settings': '<path d="M3 4h10M3 8h10M3 12h10"/><circle cx="6" cy="4" r="1.5" fill="var(--op-bg)"/><circle cx="10" cy="8" r="1.5" fill="var(--op-bg)"/><circle cx="6" cy="12" r="1.5" fill="var(--op-bg)"/>',
 });
 Icons.mount();
-Tooltip.init();
 
 const $ = (id) => document.getElementById(id);
 const api = window.moji;
@@ -354,7 +353,6 @@ function sectionName(query) {
 }
 
 function render(mode = 'still') {
-  Tooltip.hide(); // su botón se va con la tanda vieja sin disparar pointerout
   document.querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === state.tab)));
   renderCategories();
 
@@ -430,7 +428,6 @@ $('results').addEventListener('contextmenu', (e) => {
 async function choose(item, copyOnly = false) {
   if (sending) return;
   sending = true;
-  Tooltip.hide(true);
   try {
     const result = await api.choose(item.id, toneFor(item), copyOnly);
     state = result.state;
@@ -511,7 +508,6 @@ const shortcutLabel = (s) => s.replace('Control', 'Ctrl');
 function preferences(open, animate = true) {
   settingsOpen = open;
   Menu.close();
-  Tooltip.hide(true);
   const [from, to] = open ? [$('panel'), $('preferences')] : [$('preferences'), $('panel')];
   const swapping = animate && !from.hidden && !from.dataset.state;
   if (swapping) leave(from);
@@ -695,7 +691,6 @@ document.addEventListener('keydown', (e) => {
    oculta los timers se frenan y quedarían en pantalla al reabrir). */
 
 function clearOverlays() {
-  Tooltip.hide(true);
   Menu.close(true);
   Modal.close(null);
   document.querySelectorAll('#op-layer > [data-state=closing]').forEach((e) => e.remove());
