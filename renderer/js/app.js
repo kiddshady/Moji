@@ -12,7 +12,7 @@
 
 import { Icons } from './icons.js';
 import { Menu, Modal } from './overlays.js';
-import { exit, swap, tick, scrollFade } from './motion.js';
+import { exit, swap, tick, roll, scrollFade } from './motion.js';
 import { searchItems, variant } from './search.mjs';
 
 Icons.add({
@@ -38,20 +38,22 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 /* ── Textos que se ponen al día ─────────────────────────────────────────────
    swap() de Opal releva lo viejo por lo nuevo en la misma celda. Pero si en
-   una frase solo cambian las cifras («Bajando la 0.5.0… 41 %» → «42 %»),
-   relevarla entera la apagaría y la prendería en cada paso: ahí se reescribe
-   en su lugar y destella (tick). Mientras un relevo está en curso no se toca
-   lo que se va: va como relevo. */
+   una frase solo cambian las cifras, relevarla entera la apagaría y la
+   prendería en cada paso: ahí se reescribe en su lugar y destella (tick).
+   Un progreso no pasa por acá: corre con roll() (renderUpdateStatus).
+   Mientras un relevo está en curso no se toca lo que se va: va como relevo. */
+const live = (el) => el.querySelector(':scope > .op-swap__item:not([data-state=closing])');
+
 function frase(el, html) {
-  const live = el.querySelector(':scope > .op-swap__item:not([data-state=closing])');
+  const item = live(el);
   const digits = (h) => h.replace(/\d+/g, '#');
-  const same = live && el.__swap != null && el.__swap !== html && digits(el.__swap) === digits(html)
+  const same = item && el.__swap != null && el.__swap !== html && digits(el.__swap) === digits(html)
     && el.querySelectorAll(':scope > .op-swap__item').length === 1;
   if (!same) return swap(el, html);
-  live.innerHTML = html;
+  item.innerHTML = html;
   el.__swap = html;   // la memoria de swap(): el próximo relevo compara contra esto
   tick(el);   // en el contenedor: el ítem asentado tiene animation: none y le ganaría
-  return live;
+  return item;
 }
 
 /** Un número suelto: en su lugar, y destella si cambió. El primero no. */
@@ -460,12 +462,31 @@ const UPDATE_TEXT = {
 };
 let announced = '';
 
+/* El porcentaje de la descarga corre con roll() y no destella. Antes la frase
+   entera iba por frase(): de «… 41 %» a «… 42 %» cambiaban solo cifras, así
+   que destellaba en cada aviso del main, varias veces por segundo, y el
+   texto se prendía y apagaba sin parar. Ahora el porcentaje vive en su
+   <span> y, mientras baja la misma versión, solo corre ese número; la frase
+   se releva cuando cambia la fase. */
+function renderUpdateStatus(el, u) {
+  const key = u.state === 'downloading' ? `downloading:${u.version}` : '';
+  const pct = live(el)?.querySelector('.update-pct');
+  if (key && el.__updateKey === key && pct) {
+    roll(pct, u.percent || 0, (v) => { pct.textContent = `${Math.round(v)} %`; }, { from: parseFloat(pct.textContent) });
+    return;
+  }
+  el.__updateKey = key;
+  frase(el, key
+    ? `Bajando la ${esc(u.version || '')}… <span class="update-pct">${u.percent || 0} %</span>`
+    : esc((UPDATE_TEXT[u.state] || UPDATE_TEXT.idle)(u)));
+}
+
 /* Con la versión lista, el botón pasa a primario: es la única acción que
    importa en Ajustes. Su rótulo cambia con un relevo y el ancho viaja
    (swap con size; .op-swap--row lo deja en fila). */
 function renderUpdate(u) {
   state.update = u;
-  frase($('update-status'), esc((UPDATE_TEXT[u.state] || UPDATE_TEXT.idle)(u)));
+  renderUpdateStatus($('update-status'), u);
   const b = $('update-action');
   const ready = u.state === 'ready';
   const label = ready ? 'Instalar' : u.state === 'error' ? 'Reintentar' : 'Buscar';

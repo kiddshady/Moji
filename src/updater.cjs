@@ -53,9 +53,9 @@ async function check() {
   return status;
 }
 
-// isSilent:false muestra el progreso del instalador; isForceRunAfter:true reabre Moji.
+// isSilent:true instala sin mostrar el asistente; isForceRunAfter:true reabre Moji.
 function install() {
-  if (status.state === 'ready') updater.quitAndInstall(false, true);
+  if (status.state === 'ready') updater.quitAndInstall(true, true);
 }
 
 module.exports = { init, check, install, current: () => status };
