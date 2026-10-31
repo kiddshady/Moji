@@ -20,7 +20,7 @@
     "release": "electron-builder --win nsis --x64 --config.directories.output=installer-dist --publish always"
   },
   "devDependencies": {
-    "electron": "44.5.1",
+    "electron": "44.10.1",
     "electron-builder": "^26.15.3",
     "emojibase-data": "17.0.0"
   },
